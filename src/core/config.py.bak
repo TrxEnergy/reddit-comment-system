@@ -2,8 +2,8 @@
 配置管理系统
 使用Pydantic Settings实现类型安全的配置管理
 """
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, AliasChoices
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import Optional
 
 
@@ -39,14 +39,8 @@ class RedditConfig(BaseSettings):
         default=2,
         description="每账号每小时最大评论数"
     )
-    client_id: str = Field(
-        default="",
-        validation_alias=AliasChoices("REDDIT_CLIENT_ID", "reddit_client_id")
-    )
-    client_secret: str = Field(
-        default="",
-        validation_alias=AliasChoices("REDDIT_CLIENT_SECRET", "reddit_client_secret")
-    )
+    client_id: str = Field(default="", env="REDDIT_CLIENT_ID")
+    client_secret: str = Field(default="", env="REDDIT_CLIENT_SECRET")
 
 
 class LogConfig(BaseSettings):
@@ -57,13 +51,6 @@ class LogConfig(BaseSettings):
 
 class Settings(BaseSettings):
     """全局配置"""
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        env_nested_delimiter="__",
-        case_sensitive=False
-    )
-
     yanghao: YanghaoAPIConfig = Field(default_factory=YanghaoAPIConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
     reddit: RedditConfig = Field(default_factory=RedditConfig)
@@ -71,10 +58,13 @@ class Settings(BaseSettings):
 
     app_name: str = "reddit-comment-system"
     version: str = "0.1.0"
-    debug: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("DEBUG", "debug")
-    )
+    debug: bool = Field(default=False, env="DEBUG")
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        env_nested_delimiter = "__"
+        case_sensitive = False
 
 
 # 全局单例
