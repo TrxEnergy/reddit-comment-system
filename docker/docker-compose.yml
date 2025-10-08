@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  comment-system:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: reddit_comment_system
+    volumes:
+      - ../src:/app/src
+      - ../tests:/app/tests
+      - ../config:/app/config
+      - ../logs:/app/logs
+    environment:
+      YANGHAO__BASE_URL: http://host.docker.internal:8000
+      AI__API_KEY: ${OPENAI_API_KEY:-}
+      LOG__LEVEL: INFO
+      LOG__FORMAT: json
+      DEBUG: "true"
+    networks:
+      - comment-net
+    command: tail -f /dev/null
+    healthcheck:
+      test: ["CMD", "python", "-c", "from src.core.config import settings; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  comment-net:
+    driver: bridge
