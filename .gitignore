@@ -32,6 +32,3 @@ htmlcov/
 # 日志
 logs/
 *.log
-
-# Docker
-.dockerignore
