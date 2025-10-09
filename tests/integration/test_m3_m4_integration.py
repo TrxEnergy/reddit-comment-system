@@ -311,17 +311,17 @@ class TestEndToEndIntegration:
         """测试混合意图组的批量处理"""
         mock_comment_a = GeneratedComment(
             text="Test A comment", persona_used="gas_optimizer", intent_group="A",
-            style_guide_id="Tronix", quality_scores=QualityScores(0.9, 0.88, 0.98, 0.92),
+            style_guide_id="Tronix", quality_scores=QualityScores(relevance=0.9, natural=0.88, compliance=0.98, overall=0.92),
             audit={}, timestamps={}, variants=[], request_id="post_a_001"
         )
         mock_comment_b = GeneratedComment(
             text="Test B comment", persona_used="wallet_helper", intent_group="B",
-            style_guide_id="CryptoCurrency", quality_scores=QualityScores(0.91, 0.87, 0.97, 0.92),
+            style_guide_id="CryptoCurrency", quality_scores=QualityScores(relevance=0.91, natural=0.87, compliance=0.97, overall=0.92),
             audit={}, timestamps={}, variants=[], request_id="post_b_001"
         )
         mock_comment_c = GeneratedComment(
             text="Test C comment", persona_used="beginner_mentor", intent_group="C",
-            style_guide_id="CryptoCurrency", quality_scores=QualityScores(0.89, 0.90, 0.98, 0.92),
+            style_guide_id="CryptoCurrency", quality_scores=QualityScores(relevance=0.89, natural=0.90, compliance=0.98, overall=0.92),
             audit={}, timestamps={}, variants=[], request_id="post_c_001"
         )
 
@@ -401,7 +401,7 @@ class TestQuotaIntegration:
 
         mock_comment = GeneratedComment(
             text="Test", persona_used="wallet_helper", intent_group="B",
-            style_guide_id="CryptoCurrency", quality_scores=QualityScores(0.9, 0.88, 0.98, 0.92),
+            style_guide_id="CryptoCurrency", quality_scores=QualityScores(relevance=0.9, natural=0.88, compliance=0.98, overall=0.92),
             audit={}, timestamps={}, variants=[], request_id="post_b_001"
         )
 
