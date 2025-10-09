@@ -43,10 +43,22 @@ docker-compose exec comment-system pytest tests/unit/ -v
 ### 当前模块（MVP阶段）
 
 - ✅ **M1: 基础设施** - 配置、日志、Docker环境
-- 🚧 **M2: 发现引擎** - Reddit帖子发现和去重
-- 🚧 **M3: 智能筛选** - AI驱动的帖子筛选
+- ✅ **M2: 发现引擎** - Reddit帖子发现和去重（30簇、5通道、3账号轮换）
+- 🚧 **M3: 评论生成** - GPT-4驱动的评论生成系统
 - 🚧 **M4: 内容工厂** - Persona化内容生成
 - 🚧 **M5: 发布协调** - 账号预留和Reddit发布
+
+### Module 2: 发现引擎（v0.2.0）
+
+完整的Reddit帖子发现系统，支持：
+- **30个Subreddit簇** - 覆盖5大类别（crypto_general, tron_ecosystem, trading, development, meme_culture）
+- **5通道并发搜索** - hot, top_day, top_week, rising, new
+- **3账号轮换** - 自动凭据管理和冷却机制
+- **预算管理** - 帖子数/API调用/运行时间三维控制
+- **质量控制** - 4种去重策略 + 完整质量过滤
+- **产能配方** - quick_scan, standard, deep_dive三种内置配方
+
+详见 [Module 2技术文档](docs/MODULE_2_DISCOVERY.md)
 
 ### 配置说明
 
