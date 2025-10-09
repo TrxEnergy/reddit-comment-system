@@ -9,11 +9,20 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# [FIX 2025-10-10] 修复Windows控制台编码问题
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 # 添加项目根目录到Python路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.discovery.pipeline import DiscoveryPipeline
 from src.screening.screening_pipeline import ScreeningPipeline
+from src.screening.dynamic_pool_calculator import DynamicPoolCalculator
+from src.screening.l1_fast_filter import L1FastFilter
+from src.screening.l2_deep_filter import L2DeepFilter
+from src.screening.cost_guard import CostGuard
 from src.content.content_pipeline import ContentPipeline
 from src.publishing.local_account_manager import LocalAccountManager
 from src.publishing.reddit_client import RedditClient
@@ -58,11 +67,11 @@ class E2ETestRunner:
         step_start = time.time()
 
         try:
-            # 初始化发现管道（使用quick_scan配方）
-            pipeline = DiscoveryPipeline(recipe_name="quick_scan")
+            # [FIX 2025-10-10] 修复DiscoveryPipeline初始化，recipe_name应传给run方法
+            pipeline = DiscoveryPipeline()
 
-            # 执行发现（限制10个帖子用于快速测试）
-            posts = await pipeline.discover(max_posts=10)
+            # 执行发现（使用quick_scan配方）
+            posts = await pipeline.run(recipe_name="quick_scan")
 
             duration = time.time() - step_start
 
@@ -74,7 +83,7 @@ class E2ETestRunner:
 
             # 显示发现的帖子
             for i, post in enumerate(posts[:3], 1):
-                print(f"  {i}. r/{post.subreddit} - {post.title[:50]}...")
+                print(f"  {i}. r/{post.cluster_id} - {post.title[:50]}...")
 
             return posts
 
@@ -97,25 +106,51 @@ class E2ETestRunner:
         step_start = time.time()
 
         try:
-            # 初始化筛选管道（假设1个活跃账号）
-            pipeline = ScreeningPipeline(active_account_count=1)
+            # [FIX 2025-10-10] 初始化筛选流程的依赖组件
+            # 由于使用本地账号文件，PoolCalculator将使用降级策略（默认100账号）
+            pool_calculator = DynamicPoolCalculator(
+                yanghao_api_base_url="http://localhost:8000"  # 不可达，将触发降级
+            )
+
+            l1_filter = L1FastFilter(
+                direct_pass_threshold=settings.m3_screening.l1_threshold_small,
+                review_threshold=settings.m3_screening.l1_review_threshold
+            )
+
+            l2_filter = L2DeepFilter(
+                api_key=settings.ai.api_key,
+                model=settings.m3_screening.l2_model
+            )
+
+            cost_guard = CostGuard(
+                daily_limit=settings.m3_screening.daily_cost_limit,
+                monthly_limit=settings.m3_screening.monthly_cost_limit
+            )
+
+            # 创建筛选流程
+            pipeline = ScreeningPipeline(
+                pool_calculator, l1_filter, l2_filter, cost_guard
+            )
 
             # 执行筛选
-            screened_posts = await pipeline.screen_posts(posts)
+            screening_result = await pipeline.run(posts)
 
             duration = time.time() - step_start
 
-            if not screened_posts:
+            if not screening_result.passed_post_ids:
                 self.print_error("M3筛选", "所有帖子被拒绝")
                 return []
+
+            # 获取通过的帖子
+            screened_posts = screening_result.get_final_posts_with_metadata()
 
             self.print_success("M3筛选", f"通过{len(screened_posts)}个帖子", duration)
 
             # 显示筛选结果
-            for i, post in enumerate(screened_posts[:1], 1):
-                print(f"  {i}. r/{post.subreddit} - {post.title[:50]}...")
-                print(f"     分数: {post.metadata.get('relevance_score', 0):.2f}")
-                print(f"     意图: {post.metadata.get('intent_group', 'unknown')}")
+            for i, post in enumerate(screened_posts[:3], 1):
+                print(f"  {i}. r/{post.cluster_id} - {post.title[:50]}...")
+                print(f"     分数: {post.score}")
+                print(f"     评论数: {post.num_comments}")
 
             return screened_posts
 
