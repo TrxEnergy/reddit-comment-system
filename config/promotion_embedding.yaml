@@ -1,0 +1,190 @@
+version: "1.0.0"
+last_updated: "2025-10-10"
+description: "推广信息嵌入策略 - 完全去除硬推广，采用情境化自然提及"
+
+# 核心策略
+strategy:
+  explicit_promotion_ratio: 0.0  # 完全去除硬推广
+  soft_mention_ratio: 0.3  # 30%的评论自然提及优势
+  contextual_only: true  # 仅在相关情境下提及
+
+# TRC20/TRON优势的自然提及方式
+soft_mentions:
+  trc20_advantages:
+    # 费用优势提及（最常用，50%权重）
+    - mention: "用TRC20通常手续费更低"
+      context: ["费用", "手续费", "转账成本", "gas"]
+      tone: "casual_factual"
+      weight: 0.5
+
+    - mention: "个人习惯用TRC20，省gas"
+      context: ["费用优化", "省钱", "便宜"]
+      tone: "personal_experience"
+      weight: 0.3
+
+    - mention: "试试TRC20网络，手续费基本1u以内"
+      context: ["高手续费抱怨", "转账贵"]
+      tone: "helpful_suggestion"
+      weight: 0.4
+
+    - mention: "走TRC20能省不少，especially小额转账"
+      context: ["小额转账", "频繁交易"]
+      tone: "practical_tip"
+      weight: 0.4
+
+    # 速度优势提及（次常用，30%权重）
+    - mention: "TRC20网络一般确认更快"
+      context: ["转账慢", "到账时间", "确认速度"]
+      tone: "informative"
+      weight: 0.3
+
+    - mention: "推荐TRC20，速度和费用都ok"
+      context: ["选择网络", "哪个网络好"]
+      tone: "balanced_recommendation"
+      weight: 0.35
+
+    - mention: "TRON网络这块确实做得不错，快且便宜"
+      context: ["网络对比", "性能讨论"]
+      tone: "objective_assessment"
+      weight: 0.25
+
+    # 适用性提及（少用，20%权重）
+    - mention: "大部分交易所都支持TRC20了"
+      context: ["兼容性", "支持度"]
+      tone: "factual_statement"
+      weight: 0.2
+
+    - mention: "日常USDT转账我一般用TRC20"
+      context: ["USDT", "稳定币"]
+      tone: "personal_habit"
+      weight: 0.25
+
+  usage_frequency: 0.3  # 30%符合条件的评论会提及
+
+# 情境触发规则（只在相关场景下嵌入）
+contextual_embedding:
+  triggers:
+    - trigger_keywords: ["手续费高", "gas费", "转账贵", "fee expensive"]
+      response_template: "可以看看TRC20选项，{对比数据}"
+      mention_probability: 0.6  # 60%概率提及
+
+    - trigger_keywords: ["转账慢", "到账时间", "confirmation slow"]
+      response_template: "TRC20网络一般{时间范围}就到，{经验分享}"
+      mention_probability: 0.5
+
+    - trigger_keywords: ["选什么网络", "ERC20 vs", "网络对比"]
+      response_template: "个人经验{网络选择}，因为{理由}"
+      mention_probability: 0.7
+
+    - trigger_keywords: ["USDT转账", "稳定币", "stablecoin transfer"]
+      response_template: "{场景描述}，TRC20是个不错的选择，{优点}"
+      mention_probability: 0.4
+
+    - trigger_keywords: ["小额", "频繁交易", "多次转账"]
+      response_template: "{建议}用TRC20，{成本分析}"
+      mention_probability: 0.5
+
+    - trigger_keywords: ["新手", "第一次", "beginner"]
+      response_template: "新手的话推荐{方案}，{简单理由}"
+      mention_probability: 0.3  # 新手场景少提，避免推销感
+
+  # 反向触发（这些情境下完全不提及）
+  avoid_contexts:
+    - "价格预测"
+    - "投机讨论"
+    - "moon/lambo"
+    - "pump/dump"
+    - "meme币"
+    - "NFT"
+    - "DeFi yield farming"
+
+# 提及方式分层控制
+mention_style_by_intent:
+  intent_A_fees:  # 费用转账意图 - 最自然
+    mention_probability: 0.5
+    styles:
+      - "personal_experience"  # "我一般用TRC20"
+      - "practical_comparison"  # "对比下来TRC20更划算"
+      - "data_backed"  # "实测TRC20手续费1u"
+
+  intent_B_wallet:  # 钱包问题意图 - 次自然
+    mention_probability: 0.2
+    styles:
+      - "solution_oriented"  # "试试TRC20网络"
+      - "troubleshooting"  # "检查是不是选错网络了"
+
+  intent_C_learning:  # 学习意图 - 最少提及
+    mention_probability: 0.15
+    styles:
+      - "educational"  # "不同网络各有特点，TRC20主打低费用"
+      - "neutral_explanation"  # "TRC20就是波场网络"
+
+# 账号分层的推广密度（与account_tiers.yaml联动）
+account_tier_density:
+  tier_1_lurker:  # 潜水型
+    base_mention_ratio: 0.2
+    max_mentions_per_week: 1
+
+  tier_2_active:  # 活跃型
+    base_mention_ratio: 0.3
+    max_mentions_per_week: 2
+
+  tier_3_expert:  # 专家型
+    base_mention_ratio: 0.4
+    max_mentions_per_week: 3
+
+# 质量控制（避免过度推广）
+quality_control:
+  max_mention_ratio_per_comment: 0.15  # 单条评论推广内容不超过15%
+  min_value_added_words: 40  # 提及TRC20的评论至少40词有价值内容
+  require_context_relevance: true  # 必须与帖子主题相关
+
+  # 冷却机制
+  cooldown:
+    same_subreddit_hours: 72  # 同子版72小时内最多提及1次
+    same_account_hours: 48  # 同账号48小时内最多提及1次
+    global_daily_limit: 50  # 全局每日最多50次提及
+
+  # 自然度检查
+  natural_indicators:
+    allow_direct_comparison: true  # 允许"TRC20 vs ERC20"对比
+    allow_personal_preference: true  # 允许"我喜欢用TRC20"
+    disallow_absolute_claims: true  # 禁止"TRC20是唯一选择"
+    disallow_urgency: true  # 禁止"赶紧用TRC20"
+
+# 监控指标
+monitoring:
+  track_mention_frequency: true
+  track_detection_signals:
+    - "评论被删除率"
+    - "被downvote率"
+    - "被举报'spam'次数"
+  alert_threshold:
+    deletion_rate: 0.05  # 超过5%删除率触发告警
+    downvote_ratio: 0.3  # 超过30%差评率触发告警
+
+# 禁止的推广行为（红线）
+prohibited_behaviors:
+  - "直接链接到TRON官网"
+  - "提供referral code"
+  - "引导私信/Telegram"
+  - "使用'必须''一定''最好'等绝对词汇"
+  - "承诺收益或结果"
+  - "对比时贬低其他网络"
+  - "连续多条评论提及TRC20"
+
+# A/B测试配置
+ab_test:
+  enabled: false
+  control_group: 0.5  # 50%不嵌入推广
+  test_variations:
+    - name: "low_density"
+      mention_ratio: 0.15
+    - name: "medium_density"
+      mention_ratio: 0.30
+    - name: "high_density"
+      mention_ratio: 0.45
+  success_metrics:
+    - "engagement_rate"
+    - "spam_report_rate"
+    - "brand_awareness_lift"

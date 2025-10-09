@@ -1,0 +1,95 @@
+version: "1.0.0"
+last_updated: "2025-10-09"
+
+groups:
+  A:
+    name: "Fees & Transfers"
+    description: "手续费/转账路径/能量/网络费用/优化策略"
+    positive_clues:
+      - "fee"
+      - "fees"
+      - "withdrawal"
+      - "TRC20"
+      - "TRON"
+      - "energy"
+      - "gas"
+      - "transfer cost"
+      - "cheapest way"
+      - "save money"
+    negative_lookalikes:
+      - "price prediction"
+      - "moon"
+      - "lambo"
+      - "airdrops"
+      - "to the moon"
+    preferred_personas:
+      - "gas_optimizer"
+      - "crypto_expert"
+      - "multilingual_user"
+    response_style:
+      focus: "实操路径、成本对比、真实经验"
+      tone: "practical_helpful"
+      must_include: "具体费用数字或平台名称"
+      avoid: "价格预测、投机建议"
+
+  B:
+    name: "Exchange & Wallet Issues"
+    description: "提现/入账/限额/KYC/钱包卡顿/地址验证"
+    positive_clues:
+      - "withdraw pending"
+      - "stuck"
+      - "limit"
+      - "KYC"
+      - "address"
+      - "tag"
+      - "memo"
+      - "not received"
+      - "missing funds"
+      - "exchange issue"
+    negative_lookalikes:
+      - "which exchange is best"
+      - "exchange recommendation"
+      - "referral code"
+    preferred_personas:
+      - "wallet_helper"
+      - "exchange_user"
+      - "risk_aware_investor"
+    response_style:
+      focus: "故障排查步骤、安全提示、平台规则"
+      tone: "patient_cautious"
+      must_include: "具体操作步骤或验证方法"
+      avoid: "平台推荐、邀请码、隐私信息索取"
+
+  C:
+    name: "Learning & Sharing"
+    description: "新手提问/科普/经验分享/解释术语/市场观察"
+    positive_clues:
+      - "newbie"
+      - "how to"
+      - "explain"
+      - "what is"
+      - "guide"
+      - "beginner"
+      - "learn"
+      - "confused"
+      - "eli5"
+      - "difference between"
+    negative_lookalikes:
+      - "guaranteed profit"
+      - "sure thing"
+      - "financial advice"
+    preferred_personas:
+      - "beginner_mentor"
+      - "market_observer"
+      - "data_nerd"
+      - "tech_explainer"
+    response_style:
+      focus: "清晰解释、类比举例、资源指引"
+      tone: "educational_encouraging"
+      must_include: "通俗易懂的解释或类比"
+      avoid: "过度简化、投资建议、复杂术语堆砌"
+
+routing_rules:
+  priority: "positive_clues_count DESC, negative_lookalikes_count ASC"
+  fallback_group: "C"
+  confidence_threshold: 0.6

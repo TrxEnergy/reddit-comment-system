@@ -1,0 +1,136 @@
+version: "1.0.0"
+last_updated: "2025-10-09"
+
+styles:
+  - subreddit: "CryptoCurrency"
+    tone: "neutral_sober"
+    length:
+      top_level_sentences: {min: 3, max: 4}
+      reply_sentences: {min: 2, max: 3}
+      chars: {min: 50, max: 400}
+    jargon_level: "medium"
+    must_end_with_question: true
+    dos:
+      - "acknowledge uncertainty with 'imo'/'from my experience'"
+      - "share personal anecdotes, not advice"
+      - "cite sources when making factual claims"
+    donts:
+      - "price predictions"
+      - "affiliate links"
+      - "guaranteed outcomes"
+      - "emotional appeals"
+    compliance:
+      financial_disclaimer: true
+      nsfw_tolerance: "zero"
+      link_policy: "none"
+
+  - subreddit: "Tronix"
+    tone: "friendly_practical"
+    length:
+      top_level_sentences: {min: 3, max: 4}
+      reply_sentences: {min: 2, max: 3}
+      chars: {min: 40, max: 500}
+    jargon_level: "medium_high"
+    must_end_with_question: false
+    dos:
+      - "concrete steps with platform names"
+      - "platform-agnostic advice when possible"
+      - "mention energy/bandwidth trade-offs"
+    donts:
+      - "hard sell of TRON vs other chains"
+      - "promotional language"
+      - "excessive emojis"
+    compliance:
+      financial_disclaimer: false
+      nsfw_tolerance: "zero"
+      link_policy: "whitelist_only"
+
+  - subreddit: "ethereum"
+    tone: "technical_respectful"
+    length:
+      top_level_sentences: {min: 3, max: 5}
+      reply_sentences: {min: 2, max: 4}
+      chars: {min: 60, max: 600}
+    jargon_level: "high"
+    must_end_with_question: false
+    dos:
+      - "technical accuracy over simplicity"
+      - "reference EIPs/ERCs when relevant"
+      - "acknowledge trade-offs"
+    donts:
+      - "oversimplification"
+      - "chain tribalism"
+      - "speculative price talk"
+    compliance:
+      financial_disclaimer: false
+      nsfw_tolerance: "zero"
+      link_policy: "docs_and_github"
+
+  - subreddit: "Bitcoin"
+    tone: "principled_educational"
+    length:
+      top_level_sentences: {min: 3, max: 4}
+      chars: {min: 50, max: 450}
+    jargon_level: "medium"
+    must_end_with_question: false
+    dos:
+      - "emphasize self-custody"
+      - "cite Bitcoin-specific principles (decentralization/security)"
+      - "historical context when relevant"
+    donts:
+      - "altcoin shilling"
+      - "get-rich-quick narratives"
+      - "technical elitism"
+    compliance:
+      financial_disclaimer: true
+      nsfw_tolerance: "zero"
+      link_policy: "whitelist_only"
+
+  - subreddit: "CryptoMarkets"
+    tone: "analytical_cautious"
+    length:
+      top_level_sentences: {min: 2, max: 4}
+      chars: {min: 40, max: 400}
+    jargon_level: "medium"
+    must_end_with_question: false
+    dos:
+      - "data-driven observations"
+      - "acknowledge market unpredictability"
+      - "distinguish analysis from advice"
+    donts:
+      - "price targets"
+      - "pump signals"
+      - "financial advice"
+    compliance:
+      financial_disclaimer: true
+      nsfw_tolerance: "low"
+      link_policy: "none"
+
+  - subreddit: "default"
+    tone: "neutral_helpful"
+    length:
+      top_level_sentences: {min: 2, max: 4}
+      reply_sentences: {min: 2, max: 3}
+      chars: {min: 30, max: 400}
+    jargon_level: "low"
+    must_end_with_question: false
+    dos:
+      - "clear and concise"
+      - "respectful tone"
+      - "acknowledge when unsure"
+    donts:
+      - "spam"
+      - "offensive language"
+      - "unsolicited promotions"
+    compliance:
+      financial_disclaimer: false
+      nsfw_tolerance: "zero"
+      link_policy: "none"
+
+metadata:
+  total_subreddits_covered: 5
+  default_fallback: "default"
+  version_history:
+    - version: "1.0.0"
+      date: "2025-10-09"
+      changes: "初始版本，覆盖5个主要子版+默认规则"

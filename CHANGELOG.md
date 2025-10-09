@@ -7,6 +7,111 @@
 
 ---
 
+## [0.4.0] - 2025-10-09
+
+### Added
+
+#### Module 4: Persona内容工厂完整实现
+
+**核心组件**:
+- **Persona管理器** (`src/content/persona_manager.py`)
+  - 10个轻量Persona覆盖A/B/C三组意图
+  - Persona选择、冷却管理和使用统计
+  - 支持子版兼容性过滤和720分钟冷却
+
+- **意图路由器** (`src/content/intent_router.py`)
+  - 三大意图组路由：A（费用转账）、B（钱包问题）、C（新手学习）
+  - 基于positive_clues和negative_lookalikes分类
+  - 支持M3 metadata中的intent_group直接传递
+
+- **Prompt构建器** (`src/content/prompt_builder.py`)
+  - 6模块Prompt拼装：ROLE/CONTEXT/INTENT/STYLE/SAFETY/FORMAT
+  - Persona背景和口头禅动态注入
+  - 子版风格卡和M3建议整合
+
+- **AI客户端** (`src/content/ai_client.py`)
+  - 双客户端支持：OpenAI（gpt-4o-mini）+ Anthropic（claude-3-haiku）
+  - 重试机制（最多2次，指数退避）
+  - 超时控制（单次15秒）和异常处理
+
+- **评论生成器** (`src/content/comment_generator.py`)
+  - 完整7步流程：Prompt→AI→自然化→合规→评分→变体选择
+  - 生成2个变体并选择最佳候选
+  - 自动附加金融免责声明（A/B组）
+
+- **自然化处理器** (`src/content/naturalizer.py`)
+  - 口头禅随机注入（opening/transition/ending）
+  - 句式多样化和模板痕迹去除
+  - 长度调整（50-400字符最优区间）
+
+- **合规审查器** (`src/content/compliance_checker.py`)
+  - 硬禁止：12短语 + 3正则（外链/私信/推荐码）
+  - 软约束：情绪强度、绝对化比例、长度范围
+  - 自动免责声明附加（Intent A/B组）
+
+- **质量评分器** (`src/content/quality_scorer.py`)
+  - 三分法评分：relevance/natural/compliance（0-1分）
+  - 放行阈值：≥0.85/0.85/0.95
+  - 结合M3 metadata的intent_prob权重
+
+- **配额管理器** (`src/content/quota_manager.py`)
+  - 账户日限1条（滚动24小时或自然日）
+  - 防止配额意外消耗（仅在质量通过后记账）
+  - 支持批量状态查询
+
+- **风格卡加载器** (`src/content/style_guide_loader.py`)
+  - 6个子版风格卡（CryptoCurrency/Tronix/ethereum/Bitcoin/CryptoMarkets/default）
+  - tone/jargon/length/dos/donts配置
+  - 未覆盖子版自动回退到default
+
+- **主管道** (`src/content/content_pipeline.py`)
+  - 端到端流程编排：M3解析→路由→选择→生成→评分→记账
+  - 统计汇总（processed/generated/quota_denied/quality_failed）
+  - CLI测试入口（可独立运行）
+
+- **数据模型** (`src/content/models.py`)
+  - Persona、IntentGroup、StyleGuide、CommentRequest
+  - GeneratedComment、QualityScores、ComplianceCheck
+  - PersonaUsageRecord
+
+**配置文件**:
+- `data/personas/persona_bank.yaml`: 10个Persona完整定义
+- `data/intents/intent_groups.yaml`: A/B/C三组意图规则
+- `data/styles/sub_style_guides.yaml`: 6个子版风格卡
+- `config/content_policies.yaml`: 硬禁止和软约束政策
+- `data/languages/language_glossary.yaml`: 多语言术语和混写策略
+- `config/scoring_thresholds.env`: 44行完整阈值配置
+- `config/ab_experiments.yaml`: A/B试验框架（draft）
+
+**测试套件**:
+- `tests/unit/test_content_pipeline.py`: 16个管道流程测试
+- `tests/unit/test_compliance_checker.py`: 25个合规审查测试
+- `tests/integration/test_m3_m4_integration.py`: 20个M3→M4集成测试
+- 当前状态：18个测试通过，覆盖率12%（核心模块97%）
+
+**文档**:
+- `docs/MODULE_4_CONTENT.md`: 完整模块文档
+  - 系统架构和数据流图
+  - 10个Persona设计说明
+  - 6步Prompt构建策略
+  - 配置文件详解和使用示例
+  - 性能指标和故障排查指南
+
+**关键特性**:
+- ✅ 每账户每日最多1条评论（强制配额）
+- ✅ Persona冷却720分钟（同persona-subreddit不重复）
+- ✅ 子版冷却72小时（避免相似主题重复）
+- ✅ 成本守护：日限$0.40、月限$12、生成$0.002/次
+- ✅ 质量阈值：rel≥0.85, nat≥0.85, comp≥0.95
+- ✅ 双AI客户端：OpenAI + Anthropic
+- ✅ 多语言支持：EN/ES/ZH术语混写
+
+**依赖更新**:
+- openai>=1.3.0 (OpenAI API客户端)
+- anthropic>=0.8.0 (Anthropic API客户端)
+
+---
+
 ## [0.3.0] - 2025-10-09
 
 ### Added
