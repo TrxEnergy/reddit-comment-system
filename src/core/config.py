@@ -49,6 +49,20 @@ class RedditConfig(BaseSettings):
     )
 
 
+class LocalAccountsConfig(BaseSettings):
+    """本地账号文件配置"""
+    use_local_accounts: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("USE_LOCAL_ACCOUNTS", "use_local_accounts"),
+        description="是否使用本地账号文件（而非养号API）"
+    )
+    local_accounts_file: str = Field(
+        default="",
+        validation_alias=AliasChoices("LOCAL_ACCOUNTS_FILE", "local_accounts_file"),
+        description="本地账号文件路径（tokens.jsonl）"
+    )
+
+
 class LogConfig(BaseSettings):
     """日志配置"""
     level: str = Field(default="INFO", description="日志级别")
@@ -148,6 +162,7 @@ class Settings(BaseSettings):
     yanghao: YanghaoAPIConfig = Field(default_factory=YanghaoAPIConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
     reddit: RedditConfig = Field(default_factory=RedditConfig)
+    local_accounts: LocalAccountsConfig = Field(default_factory=LocalAccountsConfig)
     log: LogConfig = Field(default_factory=LogConfig)
     m3_screening: M3ScreeningConfig = Field(default_factory=M3ScreeningConfig)
 

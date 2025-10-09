@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from src.publishing.models import RedditAccount
 from src.core.logging import get_logger
+from src.core.config import settings
 
 logger = get_logger(__name__)
 
@@ -19,19 +20,33 @@ logger = get_logger(__name__)
 class LocalAccountManager:
     """
     本地账号池管理器
-    从硬编码路径加载tokens.jsonl，提供账号锁定和配额管理
+    从配置文件中的路径加载tokens.jsonl，提供账号锁定和配额管理
     """
 
-    ACCOUNTS_FILE = r"C:\Users\beima\Desktop\BaiduSyncdisk\Trx相关\reddit账号\tokens.jsonl"
+    def __init__(self, accounts_file: Optional[str] = None):
+        """
+        初始化账号管理器
 
-    def __init__(self):
-        """初始化账号管理器"""
+        Args:
+            accounts_file: 账号文件路径，如不提供则使用配置文件中的路径
+        """
+        # 优先使用传入的路径，否则使用配置文件
+        self.accounts_file = accounts_file or settings.local_accounts.local_accounts_file
+
+        if not self.accounts_file:
+            raise ValueError(
+                "未配置账号文件路径。请在.env中设置LOCAL_ACCOUNTS_FILE，"
+                "或在初始化时传入accounts_file参数"
+            )
+
         self._accounts: Dict[str, RedditAccount] = {}
         self._lock = Lock()
         self._last_load_time: Optional[datetime] = None
         self._daily_comment_counts: Dict[str, int] = defaultdict(int)
         self._last_comment_times: Dict[str, datetime] = {}
         self._quota_reset_date: Optional[datetime] = None
+
+        logger.info(f"账号管理器初始化", file_path=self.accounts_file)
 
     def load_accounts(self, force_reload: bool = False) -> List[RedditAccount]:
         """
@@ -47,10 +62,10 @@ class LocalAccountManager:
             FileNotFoundError: 账号文件不存在
             json.JSONDecodeError: 文件格式错误
         """
-        accounts_path = Path(self.ACCOUNTS_FILE)
+        accounts_path = Path(self.accounts_file)
 
         if not accounts_path.exists():
-            raise FileNotFoundError(f"账号文件不存在: {self.ACCOUNTS_FILE}")
+            raise FileNotFoundError(f"账号文件不存在: {self.accounts_file}")
 
         # 如果5分钟内加载过，且非强制重新加载，则返回缓存
         if not force_reload and self._last_load_time:
@@ -86,7 +101,7 @@ class LocalAccountManager:
             logger.info(
                 "账号加载完成",
                 total=len(loaded_accounts),
-                file=self.ACCOUNTS_FILE
+                file=self.accounts_file
             )
 
             return loaded_accounts
