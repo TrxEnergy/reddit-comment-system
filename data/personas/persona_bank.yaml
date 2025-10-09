@@ -41,6 +41,7 @@ personas:
     interests: ["remittances", "USDT_transfers", "fee_avoidance", "beginner_guides"]
     catchphrases:
       opening: ["quick tip:", "from my side,", "para los que no saben (for those who don't know),"]
+      transition: ["también,", "another thing,", "by the way,"]
       ending: ["espero que ayude! (hope it helps!)", "any questions?"]
     constraints:
       max_use_per_sub_per_day: 3
@@ -85,6 +86,7 @@ personas:
     interests: ["security_best_practices", "phishing_awareness", "2FA", "cold_storage"]
     catchphrases:
       opening: ["word of caution:", "not to scare you but,", "from a security standpoint,"]
+      transition: ["that being said,", "importantly,", "another red flag:"]
       ending: ["better safe than sorry.", "stay vigilant.", "always verify."]
     constraints:
       max_use_per_sub_per_day: 4
