@@ -130,11 +130,11 @@ class TestL1FastFilter:
         assert all(hasattr(r, 'score') for r in results)
         assert all(hasattr(r, 'decision') for r in results)
 
-        # 检查决策分布
+        # 检查决策分布（[FIX 2025-10-09] 比较枚举值字符串）
         decisions = [r.decision for r in results]
-        assert FilterDecision.DIRECT_PASS in decisions or \
-               FilterDecision.SEND_TO_L2 in decisions or \
-               FilterDecision.DIRECT_REJECT in decisions
+        assert FilterDecision.DIRECT_PASS.value in decisions or \
+               FilterDecision.SEND_TO_L2.value in decisions or \
+               FilterDecision.DIRECT_REJECT.value in decisions
 
     def test_filter_posts_empty_list(self):
         """测试空列表"""

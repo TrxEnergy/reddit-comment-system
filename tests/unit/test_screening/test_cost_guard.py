@@ -33,12 +33,12 @@ class TestCostGuard:
         guard = CostGuard(daily_limit=1.0, storage_path=temp_storage)
 
         guard.add_cost(0.10)
-        assert guard.daily_cost == 0.10
-        assert guard.monthly_cost == 0.10
+        assert abs(guard.daily_cost - 0.10) < 0.0001
+        assert abs(guard.monthly_cost - 0.10) < 0.0001
 
         guard.add_cost(0.20)
-        assert guard.daily_cost == 0.30
-        assert guard.monthly_cost == 0.30
+        assert abs(guard.daily_cost - 0.30) < 0.0001
+        assert abs(guard.monthly_cost - 0.30) < 0.0001
 
     def test_is_daily_exceeded(self, temp_storage):
         """测试日成本超限检测"""
@@ -75,13 +75,13 @@ class TestCostGuard:
         guard.add_cost(0.30)
 
         status = guard.get_status()
-        assert status.daily_cost == 0.30
-        assert status.monthly_cost == 0.30
+        assert abs(status.daily_cost - 0.30) < 0.0001
+        assert abs(status.monthly_cost - 0.30) < 0.0001
         assert status.daily_limit == 1.0
         assert status.monthly_limit == 10.0
         assert not status.is_daily_exceeded
         assert not status.is_monthly_exceeded
-        assert status.remaining_daily_budget == 0.70
+        assert abs(status.remaining_daily_budget - 0.70) < 0.0001
         assert status.can_proceed()
 
     def test_reset_daily(self, temp_storage):
@@ -108,16 +108,18 @@ class TestCostGuard:
         guard1.add_cost(0.50)
 
         guard2 = CostGuard(storage_path=temp_storage)
-        assert guard2.daily_cost == 0.50
-        assert guard2.monthly_cost == 0.50
+        assert abs(guard2.daily_cost - 0.50) < 0.0001
+        assert abs(guard2.monthly_cost - 0.50) < 0.0001
 
     def test_daily_reset_on_date_change(self, temp_storage):
         """测试跨日自动重置（模拟）"""
         guard = CostGuard(storage_path=temp_storage)
         guard.add_cost(0.50)
 
-        guard.last_reset_date = date(2025, 1, 1)
+        # 设置为昨天（同一个月，只跨日不跨月）
+        from datetime import timedelta
+        guard.last_reset_date = date.today() - timedelta(days=1)
 
         guard.add_cost(0.10)
-        assert guard.daily_cost == 0.10  # 应该重置
-        assert guard.monthly_cost == 0.60  # 月成本累加
+        assert abs(guard.daily_cost - 0.10) < 0.0001  # 应该重置
+        assert abs(guard.monthly_cost - 0.60) < 0.0001  # 月成本累加

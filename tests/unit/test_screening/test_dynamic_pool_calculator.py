@@ -3,7 +3,7 @@
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from src.screening.dynamic_pool_calculator import DynamicPoolCalculator
 from src.screening.models import AccountScale
 
@@ -71,7 +71,7 @@ class TestDynamicPoolCalculator:
 
         assert config.active_accounts == 20
         assert config.pool_size == 60  # 20 * 1 * 3
-        assert config.account_scale == AccountScale.SMALL
+        assert config.account_scale == AccountScale.SMALL.value  # [FIX 2025-10-09] 比较枚举值字符串
         assert config.l1_direct_pass_threshold == 0.75
         assert config.l2_pass_threshold == 0.70
         assert config.estimated_l2_calls == 30  # 60 * 0.5
@@ -84,7 +84,7 @@ class TestDynamicPoolCalculator:
 
         assert config.active_accounts == 100
         assert config.pool_size == 300  # 100 * 1 * 3
-        assert config.account_scale == AccountScale.MEDIUM
+        assert config.account_scale == AccountScale.MEDIUM.value  # [FIX 2025-10-09] 比较枚举值字符串
         assert config.l1_direct_pass_threshold == 0.77
         assert config.l2_pass_threshold == 0.65
 
@@ -95,7 +95,7 @@ class TestDynamicPoolCalculator:
 
         assert config.active_accounts == 200
         assert config.pool_size == 600  # 200 * 1 * 3
-        assert config.account_scale == AccountScale.LARGE
+        assert config.account_scale == AccountScale.LARGE.value  # [FIX 2025-10-09] 比较枚举值字符串
         assert config.l1_direct_pass_threshold == 0.80
         assert config.l2_pass_threshold == 0.60
 
@@ -113,9 +113,9 @@ class TestDynamicPoolCalculator:
         mock_accounts = [{"username": f"user{i}"} for i in range(20)]
 
         with patch("httpx.AsyncClient") as mock_client:
-            mock_response = AsyncMock()
+            mock_response = Mock()  # [FIX 2025-10-09] response本身不是async
             mock_response.json.return_value = mock_accounts
-            mock_response.raise_for_status = AsyncMock()
+            mock_response.raise_for_status = Mock()
 
             mock_client.return_value.__aenter__.return_value.get = AsyncMock(
                 return_value=mock_response
