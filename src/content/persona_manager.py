@@ -1,9 +1,11 @@
 """
 M4内容工厂 - Persona管理器
 负责加载、选择和管理Persona，处理冷却和使用统计
+[FIX 2025-10-10] 新增：账号分层逻辑，根据tier差异化Persona选择
 """
 
 import yaml
+import hashlib
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
@@ -19,19 +21,31 @@ class PersonaManager:
     """
     Persona管理器
     负责Persona的加载、选择、冷却管理和使用统计
+    [FIX 2025-10-10] 新增：账号分层管理
     """
 
-    def __init__(self, config_path: Path):
+    def __init__(
+        self,
+        config_path: Path,
+        account_tiers_path: Optional[Path] = None
+    ):
         """
         初始化Persona管理器
 
         Args:
             config_path: persona_bank.yaml配置文件路径
+            account_tiers_path: account_tiers.yaml配置文件路径
         """
         self.config_path = config_path
         self.personas: Dict[str, Persona] = {}
         self.usage_history: List[PersonaUsageRecord] = []
         self.usage_stats: Dict[str, int] = defaultdict(int)
+
+        # [FIX 2025-10-10] 账号分层配置
+        self.account_tiers = {}
+        if account_tiers_path and account_tiers_path.exists():
+            with open(account_tiers_path, 'r', encoding='utf-8') as f:
+                self.account_tiers = yaml.safe_load(f)
 
         self._load_personas()
 
@@ -71,20 +85,24 @@ class PersonaManager:
         self,
         intent_group: str,
         subreddit: str,
+        account_id: Optional[str] = None,
         post_metadata: Optional[Dict] = None
     ) -> Persona:
         """
         根据意图组和子版选择最佳Persona
+        [FIX 2025-10-10] 新增：根据account_id的tier筛选Persona
 
         选择逻辑:
         1. 筛选intent_group匹配的personas
-        2. 检查compatible_subreddits（如果有定义）
-        3. 检查冷却状态（720分钟内未在同子版使用）
-        4. 根据使用频率选择最少使用的
+        2. [新增] 根据账号tier筛选preferred_personas
+        3. 检查compatible_subreddits（如果有定义）
+        4. 检查冷却状态（720分钟内未在同子版使用）
+        5. 根据使用频率选择最少使用的
 
         Args:
             intent_group: 意图组（A/B/C）
             subreddit: 子版名称
+            account_id: 账号ID（用于分层筛选）
             post_metadata: 帖子元数据（可选，用于进一步筛选）
 
         Returns:
@@ -101,6 +119,19 @@ class PersonaManager:
 
         if not candidates:
             raise ValueError(f"No personas found for intent group: {intent_group}")
+
+        # [FIX 2025-10-10] 2. 根据账号tier筛选preferred_personas
+        if account_id and self.account_tiers:
+            tier_name = self._assign_account_tier(account_id)
+            tier_config = self.account_tiers.get('tiers', {}).get(tier_name, {})
+            preferred_personas = tier_config.get('persona_preference', [])
+
+            if preferred_personas:
+                # 优先选择tier推荐的persona
+                tier_candidates = [p for p in candidates if p.id in preferred_personas]
+                if tier_candidates:
+                    candidates = tier_candidates
+                    logger.debug(f"Filtered to tier {tier_name} personas", count=len(candidates))
 
         # 2. 检查subreddit兼容性
         candidates = self._filter_by_subreddit(candidates, subreddit)
@@ -296,3 +327,58 @@ class PersonaManager:
         candidates = self._filter_by_cooldown(candidates, subreddit)
 
         return candidates
+
+    # [FIX 2025-10-10] 新增方法
+
+    def _assign_account_tier(self, account_id: str) -> str:
+        """
+        根据account_id分配账号tier
+        使用hash_based策略：稳定且可预测
+
+        [FIX 2025-10-10] 改进哈希算法：使用SHA256后8位提升均匀性
+        算法：hash(account_id) % 100
+        - [0, 40): tier_1 (40%)
+        - [40, 80): tier_2 (40%)
+        - [80, 100): tier_3 (20%)
+
+        Args:
+            account_id: 账号ID
+
+        Returns:
+            tier名称 ('tier_1', 'tier_2', 'tier_3')
+        """
+        # [FIX 2025-10-10] 改用SHA256后8位提升分布均匀性
+        hash_obj = hashlib.sha256(account_id.encode())
+        hash_value = int(hash_obj.hexdigest()[-8:], 16) % 100
+
+        if hash_value < 40:
+            return 'tier_1'
+        elif hash_value < 80:
+            return 'tier_2'
+        else:
+            return 'tier_3'
+
+    def get_account_tier_info(self, account_id: str) -> Dict:
+        """
+        获取账号的tier信息（用于监控和调试）
+
+        Args:
+            account_id: 账号ID
+
+        Returns:
+            包含tier配置的字典
+        """
+        if not self.account_tiers:
+            return {"tier": "none", "config": {}}
+
+        tier_name = self._assign_account_tier(account_id)
+        tier_config = self.account_tiers.get('tiers', {}).get(tier_name, {})
+
+        return {
+            "account_id": account_id,
+            "tier": tier_name,
+            "name": tier_config.get('name', ''),
+            "description": tier_config.get('description', ''),
+            "behavior": tier_config.get('behavior_pattern', {}),
+            "constraints": tier_config.get('activity_constraints', {})
+        }

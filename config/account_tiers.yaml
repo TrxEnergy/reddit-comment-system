@@ -1,0 +1,221 @@
+version: "1.0.0"
+last_updated: "2025-10-10"
+description: "账号分层配置 - 根据账号活跃度和角色差异化行为模式"
+
+# 三层账号分级
+tiers:
+  tier_1:
+    name: "潜水型 (Lurker)"
+    description: "偶尔发言，主要观察，低调参与"
+    percentage: 0.40  # 40%账号
+
+    behavior_pattern:
+      comment_frequency:
+        min_hours: 48  # 最少48小时1条
+        max_hours: 72  # 最多72小时1条
+        avg_hours: 60  # 平均2.5天1条
+
+      promotion_density: 0.2  # 20%评论可能提及TRC20
+      engagement_style: "observer"  # 观察者风格
+
+      persona_preference:
+        - "beginner_mentor"  # 更像新手求助
+        - "risk_aware_investor"  # 保守观望
+        - "market_observer"  # 数据观察
+
+      content_characteristics:
+        avg_comment_length: 80  # 平均80字符（偏短）
+        question_ratio: 0.4  # 40%评论带疑问
+        emoji_usage: 0.15  # 15%使用表情
+        technical_depth: "low"  # 技术深度低
+
+    activity_constraints:
+      max_comments_per_day: 1
+      max_comments_per_week: 3
+      max_subreddits_per_week: 3  # 只在3个子版活跃
+      avoid_controversial_topics: true
+
+  tier_2:
+    name: "活跃型 (Active)"
+    description: "经常分享经验，热心帮助，社区参与度高"
+    percentage: 0.40  # 40%账号
+
+    behavior_pattern:
+      comment_frequency:
+        min_hours: 24  # 最少24小时1条
+        max_hours: 48  # 最多48小时1条
+        avg_hours: 36  # 平均1.5天1条
+
+      promotion_density: 0.3  # 30%评论可能提及TRC20
+      engagement_style: "contributor"  # 贡献者风格
+
+      persona_preference:
+        - "gas_optimizer"  # 经验分享
+        - "wallet_helper"  # 热心帮助
+        - "data_nerd"  # 数据分析
+        - "crypto_expert"  # 专业建议
+
+      content_characteristics:
+        avg_comment_length: 150  # 平均150字符（中等）
+        question_ratio: 0.2  # 20%评论带疑问
+        emoji_usage: 0.25  # 25%使用表情
+        technical_depth: "medium"  # 技术深度中等
+
+    activity_constraints:
+      max_comments_per_day: 1
+      max_comments_per_week: 5
+      max_subreddits_per_week: 5  # 在5个子版活跃
+      avoid_controversial_topics: false
+
+  tier_3:
+    name: "专家型 (Expert)"
+    description: "深度参与，专业解答，社区KOL"
+    percentage: 0.20  # 20%账号
+
+    behavior_pattern:
+      comment_frequency:
+        min_hours: 12  # 最少12小时1条
+        max_hours: 24  # 最多24小时1条
+        avg_hours: 18  # 平均18小时1条
+
+      promotion_density: 0.4  # 40%评论可能提及TRC20
+      engagement_style: "expert"  # 专家风格
+
+      persona_preference:
+        - "crypto_expert"  # 专业权威
+        - "tech_explainer"  # 技术讲解
+        - "exchange_user"  # 平台专家
+        - "market_observer"  # 行业观察
+
+      content_characteristics:
+        avg_comment_length: 220  # 平均220字符（较长）
+        question_ratio: 0.1  # 10%评论带疑问
+        emoji_usage: 0.1  # 10%使用表情（更专业）
+        technical_depth: "high"  # 技术深度高
+
+    activity_constraints:
+      max_comments_per_day: 1
+      max_comments_per_week: 7
+      max_subreddits_per_week: 8  # 跨多个子版活跃
+      avoid_controversial_topics: false
+
+# 账号分配策略
+assignment_strategy:
+  method: "hash_based"  # 基于account_id哈希分配（稳定）
+
+  # 方案1：基于account_id哈希（推荐）
+  hash_based:
+    algorithm: "md5"  # 使用MD5哈希
+    rule: |
+      hash_value = md5(account_id) % 100
+      if hash_value < 40: tier_1
+      elif hash_value < 80: tier_2
+      else: tier_3
+
+  # 方案2：基于账号年龄/karma（需养号系统API支持）
+  # karma_based:
+  #   tier_1_threshold: 0-100 karma
+  #   tier_2_threshold: 101-500 karma
+  #   tier_3_threshold: 501+ karma
+
+  # 方案3：手动配置（灵活但需维护）
+  # manual_override:
+  #   enabled: false
+  #   overrides:
+  #     "account_123": "tier_3"
+  #     "account_456": "tier_1"
+
+# 分层行为差异
+behavior_differentiation:
+  comment_style:
+    tier_1:
+      - "短句为主"
+      - "带疑问语气"
+      - "少用技术术语"
+      - "口语化强"
+
+    tier_2:
+      - "中等长度"
+      - "分享具体经验"
+      - "适度技术术语"
+      - "平衡专业与口语"
+
+    tier_3:
+      - "较长深度回复"
+      - "引用数据/链接"
+      - "技术术语准确"
+      - "专业但易懂"
+
+  subreddit_distribution:
+    tier_1:
+      focus: "大众子版"
+      examples: ["CryptoCurrency", "Bitcoin"]
+
+    tier_2:
+      focus: "大众+垂直子版"
+      examples: ["CryptoCurrency", "Bitcoin", "Tronix", "ethdev"]
+
+    tier_3:
+      focus: "全覆盖"
+      examples: ["所有30个子版"]
+
+  time_of_day_preference:  # 发帖时间偏好
+    tier_1:
+      peak_hours: [12, 13, 20, 21]  # 午休和晚上
+      timezone_spread: "low"
+
+    tier_2:
+      peak_hours: [9, 10, 12, 15, 18, 20]  # 分散全天
+      timezone_spread: "medium"
+
+    tier_3:
+      peak_hours: [8, 10, 14, 16, 19, 22]  # 工作时间+晚上
+      timezone_spread: "high"
+
+# 质量保证
+quality_assurance:
+  tier_consistency_check: true  # 检查行为是否与tier一致
+  prevent_tier_leakage: true  # 防止tier_1表现得像tier_3
+
+  detection_indicators:
+    tier_mismatch_signals:
+      - "tier_1使用大量技术术语"
+      - "tier_1评论过长（>200字符）"
+      - "tier_3评论过短（<80字符）"
+      - "tier_1在小众子版活跃"
+
+# 动态调整（可选，暂未实现）
+# dynamic_adjustment:
+#   enabled: false
+#   promotion_rules:
+#     tier_1_to_tier_2:
+#       condition: "连续10条高质量评论"
+#     tier_2_to_tier_3:
+#       condition: "连续20条高质量评论 + karma > 500"
+
+# 监控指标
+monitoring:
+  track_tier_distribution: true  # 监控实际分布是否符合40/40/20
+  track_tier_performance:
+    - "engagement_rate_by_tier"
+    - "spam_report_rate_by_tier"
+    - "comment_quality_by_tier"
+
+# 统计报告
+statistics:
+  expected_distribution:
+    tier_1: 40
+    tier_2: 40
+    tier_3: 20
+
+  expected_weekly_comments:
+    tier_1: "120 (40账号 × 3评论/周)"
+    tier_2: "200 (40账号 × 5评论/周)"
+    tier_3: "140 (20账号 × 7评论/周)"
+    total: "460条/周"
+
+  expected_promotion_mentions:
+    tier_1: "24条/周 (120 × 0.2)"
+    tier_2: "60条/周 (200 × 0.3)"
+    tier_3: "56条/周 (140 × 0.4)"
+    total: "140条/周"

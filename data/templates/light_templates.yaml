@@ -1,0 +1,121 @@
+version: "1.0.0"
+last_updated: "2025-10-10"
+description: "轻量模板池，提供自然口语化的评论骨架"
+
+templates:
+  # A组：费用转账相关模板
+  fee_related:
+    - template: "fwiw, 从经验看{具体建议}，能省不少手续费"
+      variables: ["具体建议"]
+      example: "fwiw, 从经验看走TRC20通道，能省不少手续费"
+
+    - template: "imo {方案} 在{场景}下更划算，{理由}"
+      variables: ["方案", "场景", "理由"]
+      example: "imo 用TRC20 在小额转账下更划算，gas费基本可以忽略"
+
+    - template: "实测{方法}手续费更低，{数据点}"
+      variables: ["方法", "数据点"]
+      example: "实测TRC20网络手续费更低，上次转100u只花了1u"
+
+    - template: "之前也踩过坑，后来发现{解决方案}，{效果}"
+      variables: ["解决方案", "效果"]
+      example: "之前也踩过坑，后来发现换成TRC20，手续费直接降了80%"
+
+    - template: "tbh {方法}确实省钱，就是{小缺点}，但{总结}"
+      variables: ["方法", "小缺点", "总结"]
+      example: "tbh TRC20确实省钱，就是有些交易所支持不全，但大平台都ok"
+
+    - template: "可能因为{原因}，试试{建议}？亲测有效"
+      variables: ["原因", "建议"]
+      example: "可能因为网络拥堵，试试换TRC20通道？亲测有效"
+
+    - template: "{场景}的话，{方案}性价比更高，{数据支撑}"
+      variables: ["场景", "方案", "数据支撑"]
+      example: "频繁小额转账的话，TRC20性价比更高，手续费基本1u以内"
+
+    - template: "个人习惯用{方案}，{优点1}而且{优点2}"
+      variables: ["方案", "优点1", "优点2"]
+      example: "个人习惯用TRC20，速度快而且便宜"
+
+  # B组：钱包问题相关模板
+  wallet_issues:
+    - template: "遇到过类似情况，{解决步骤}，一般{时间}内能解决"
+      variables: ["解决步骤", "时间"]
+      example: "遇到过类似情况，联系客服提供txid，一般24小时内能解决"
+
+    - template: "可能是{原因}，试试{方法}？我之前也这样"
+      variables: ["原因", "方法"]
+      example: "可能是网络确认慢，试试等多几个区块确认？我之前也这样"
+
+    - template: "first things first，检查{检查项1}和{检查项2}"
+      variables: ["检查项1", "检查项2"]
+      example: "first things first，检查地址格式和网络选择"
+
+    - template: "{问题}的话，通常是{原因}，{解决方法}"
+      variables: ["问题", "原因", "解决方法"]
+      example: "提现卡住的话，通常是链上拥堵，等几个确认就好"
+
+    - template: "别慌，{安慰}。{建议步骤}"
+      variables: ["安慰", "建议步骤"]
+      example: "别慌，资金还在链上。先查下区块浏览器确认状态"
+
+    - template: "depends on {变量}，如果{条件}那{方案A}，不然{方案B}"
+      variables: ["变量", "条件", "方案A", "方案B"]
+      example: "depends on 交易所，如果支持TRC20那走这个便宜，不然就ERC20"
+
+    - template: "{平台}这个问题挺常见，{经验分享}，{时间预期}"
+      variables: ["平台", "经验分享", "时间预期"]
+      example: "Binance这个问题挺常见，走内部审核流程，一般1-2天到账"
+
+    - template: "heads up: {风险提示}。{建议操作}"
+      variables: ["风险提示", "建议操作"]
+      example: "heads up: 小额测试先。确认没问题再转大额"
+
+  # C组：学习分享相关模板
+  learning_share:
+    - template: "新手时期也困惑这个，{简明解释}，{类比}"
+      variables: ["简明解释", "类比"]
+      example: "新手时期也困惑这个，其实就是不同的转账通道，就像寄快递选顺丰还是邮政"
+
+    - template: "简单说就是{核心概念}，{举例}"
+      variables: ["核心概念", "举例"]
+      example: "简单说就是区块链网络的选择，比如TRC20就是波场网络，ERC20是以太坊"
+
+    - template: "eli5版本：{通俗解释}。{进阶tips}"
+      variables: ["通俗解释", "进阶tips"]
+      example: "eli5版本：不同网络像不同的公路。选对路（比如TRC20）能省过路费"
+
+    - template: "when I started，{当时困惑}。后来明白{核心}"
+      variables: ["当时困惑", "核心"]
+      example: "when I started，也不懂为啥手续费差这么多。后来明白网络不同成本差异大"
+
+    - template: "think of it like this: {类比}，所以{结论}"
+      variables: ["类比", "结论"]
+      example: "think of it like this: 不同链就像不同快递公司，所以选便宜快的（比如TRC20）更合理"
+
+    - template: "{概念}确实confusing，{简化解释}。{实用建议}"
+      variables: ["概念", "简化解释", "实用建议"]
+      example: "网络选择确实confusing，就记住TRC20便宜快就行。日常转账优先考虑"
+
+    - template: "fun fact: {有趣数据}。这就是为什么{结论}"
+      variables: ["有趣数据", "结论"]
+      example: "fun fact: TRC20转账费用只有ERC20的十分之一。这就是为什么很多人首选它"
+
+    - template: "the key takeaway: {核心要点}。{行动建议}"
+      variables: ["核心要点", "行动建议"]
+      example: "the key takeaway: 选对网络能省很多钱。转账前对比下手续费"
+
+usage_notes:
+  - "模板中的{变量}需要根据帖子内容和意图动态填充"
+  - "同一账号避免短期内重复使用相同模板"
+  - "可与Persona口头禅组合使用，增强自然度"
+  - "模板作为骨架，AI负责填充细节和个性化"
+
+template_selection_strategy:
+  intent_group_A: "fee_related"
+  intent_group_B: "wallet_issues"
+  intent_group_C: "learning_share"
+
+rotation_policy:
+  same_template_cooldown_hours: 168  # 7天内同账号不重复使用
+  template_usage_tracking: true

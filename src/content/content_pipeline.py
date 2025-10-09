@@ -1,9 +1,11 @@
 """
 M4内容工厂 - 主管道
 端到端的评论生成流程编排
+[FIX 2025-10-10] 更新：传入新配置文件路径（模板/自然化/推广/分层）
 """
 
 import asyncio
+import yaml
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -14,6 +16,8 @@ from src.content.style_guide_loader import StyleGuideLoader
 from src.content.comment_generator import CommentGenerator
 from src.content.quota_manager import QuotaManager
 from src.content.ai_client import AIClient
+from src.content.prompt_builder import PromptBuilder
+from src.content.naturalizer import Naturalizer
 from src.core.logging import get_logger
 from src.core.config import settings
 
@@ -29,15 +33,22 @@ class ContentPipeline:
     def __init__(self, config_base_path: Path):
         """
         初始化内容管道
+        [FIX 2025-10-10] 新增：加载轻量模板、自然化、推广、分层配置
 
         Args:
             config_base_path: 配置文件基础路径（项目根目录）
         """
         self.config_base = config_base_path
 
+        # [FIX 2025-10-10] 加载content_policies（PromptBuilder需要）
+        policies_path = config_base_path / "config" / "content_policies.yaml"
+        with open(policies_path, 'r', encoding='utf-8') as f:
+            policies_config = yaml.safe_load(f)
+
         # 初始化各模块
         self.persona_manager = PersonaManager(
-            config_base_path / "data" / "personas" / "persona_bank.yaml"
+            config_path=config_base_path / "data" / "personas" / "persona_bank.yaml",
+            account_tiers_path=config_base_path / "config" / "account_tiers.yaml"  # [FIX 2025-10-10]
         )
         self.intent_router = IntentRouter(
             config_base_path / "data" / "intents" / "intent_groups.yaml"
@@ -46,10 +57,22 @@ class ContentPipeline:
             config_base_path / "data" / "styles" / "sub_style_guides.yaml"
         )
 
+        # [FIX 2025-10-10] 初始化PromptBuilder（传入模板和推广配置）
+        self.prompt_builder = PromptBuilder(
+            policies_config=policies_config,
+            templates_path=config_base_path / "data" / "templates" / "light_templates.yaml",
+            promotion_config_path=config_base_path / "config" / "promotion_embedding.yaml"
+        )
+
+        # [FIX 2025-10-10] 初始化Naturalizer（传入自然化策略）
+        self.naturalizer = Naturalizer(
+            naturalization_policy_path=config_base_path / "config" / "naturalization_policy.yaml"
+        )
+
         self.ai_client = AIClient()
         self.comment_generator = CommentGenerator(
             ai_client=self.ai_client,
-            policies_path=config_base_path / "config" / "content_policies.yaml",
+            policies_path=policies_path,
             variants_count=2
         )
 
@@ -67,7 +90,7 @@ class ContentPipeline:
             "errors": 0
         }
 
-        logger.info("ContentPipeline initialized")
+        logger.info("ContentPipeline initialized with enhanced configs")
 
     async def process_batch(
         self,

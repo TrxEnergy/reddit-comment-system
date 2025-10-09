@@ -1,10 +1,13 @@
 """
 M4内容工厂 - Prompt构建器
 负责模块化拼装6个Block构成完整的AI生成Prompt
+[FIX 2025-10-10] 新增：轻量模板池、推广嵌入策略
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from pathlib import Path
 import random
+import yaml
 
 from src.content.models import Persona, IntentGroup, StyleGuide
 from src.core.logging import get_logger
@@ -22,16 +25,37 @@ class PromptBuilder:
     - STYLE_BLOCK: 风格约束
     - SAFETY_BLOCK: 合规提示
     - FORMAT_BLOCK: 格式要求
+    [FIX 2025-10-10] 新增：模板骨架、推广情境嵌入
     """
 
-    def __init__(self, policies_config: Dict):
+    def __init__(
+        self,
+        policies_config: Dict,
+        templates_path: Optional[Path] = None,
+        promotion_config_path: Optional[Path] = None
+    ):
         """
         初始化Prompt构建器
 
         Args:
             policies_config: content_policies.yaml配置
+            templates_path: light_templates.yaml路径
+            promotion_config_path: promotion_embedding.yaml路径
         """
         self.policies = policies_config
+
+        # [FIX 2025-10-10] 加载轻量模板
+        self.templates = {}
+        if templates_path and templates_path.exists():
+            with open(templates_path, 'r', encoding='utf-8') as f:
+                templates_data = yaml.safe_load(f)
+                self.templates = templates_data.get('templates', {})
+
+        # [FIX 2025-10-10] 加载推广策略
+        self.promotion_config = {}
+        if promotion_config_path and promotion_config_path.exists():
+            with open(promotion_config_path, 'r', encoding='utf-8') as f:
+                self.promotion_config = yaml.safe_load(f)
 
     def build_prompt(
         self,
@@ -130,6 +154,7 @@ Community tone: {style_guide.tone}
         """
         构建意图Block
         定义响应目标和焦点
+        [FIX 2025-10-10] 新增：轻量模板建议、推广情境嵌入
         """
         response_style = intent_group.response_style
 
@@ -139,7 +164,76 @@ Focus on: {response_style.get('focus', '')}
 Must include: {response_style.get('must_include', '')}
 Avoid: {response_style.get('avoid', '')}
 """
+
+        # [FIX 2025-10-10] 添加轻量模板建议
+        template_hint = self._get_template_hint(intent_group.name)
+        if template_hint:
+            block += f"\nTemplate suggestion (optional): \"{template_hint}\"\n"
+
+        # [FIX 2025-10-10] 添加推广情境（如果符合条件）
+        promotion_context = self._get_promotion_context(intent_group.name)
+        if promotion_context:
+            block += f"\n{promotion_context}\n"
+
         return block.strip()
+
+    def _get_template_hint(self, intent_group_name: str) -> str:
+        """
+        根据意图组获取模板提示
+        """
+        # 映射：A->fee_related, B->wallet_issues, C->learning_share
+        template_map = {
+            'A': 'fee_related',
+            'B': 'wallet_issues',
+            'C': 'learning_share'
+        }
+
+        template_category = template_map.get(intent_group_name)
+        if not template_category or not self.templates:
+            return ""
+
+        templates_list = self.templates.get(template_category, [])
+        if not templates_list:
+            return ""
+
+        # 随机选择一个模板
+        template_item = random.choice(templates_list)
+        return template_item.get('template', '')
+
+    def _get_promotion_context(self, intent_group_name: str) -> str:
+        """
+        根据意图组获取推广情境提示（情境化嵌入TRC20优势）
+        """
+        if not self.promotion_config:
+            return ""
+
+        # 获取意图组的推广密度配置
+        mention_styles = self.promotion_config.get('mention_style_by_intent', {})
+        intent_key = f"intent_{intent_group_name}_" + ("fees" if intent_group_name == "A" else "wallet" if intent_group_name == "B" else "learning")
+
+        intent_config = mention_styles.get(intent_key, {})
+        mention_prob = intent_config.get('mention_probability', 0)
+
+        # 根据概率决定是否添加推广提示
+        if random.random() > mention_prob:
+            return ""
+
+        # 获取软提及示例
+        soft_mentions = self.promotion_config.get('soft_mentions', {}).get('trc20_advantages', [])
+        if not soft_mentions:
+            return ""
+
+        # 随机选择一个自然提及方式
+        mention_item = random.choice(soft_mentions)
+        mention_text = mention_item.get('mention', '')
+        context_keywords = mention_item.get('context', [])
+
+        if not mention_text:
+            return ""
+
+        return f"""[CONTEXTUAL MENTION - Optional]
+IF the post discusses {', '.join(context_keywords[:2])}, you may naturally mention: "{mention_text}"
+Remember: Only if truly relevant to the discussion. Do not force it."""
 
     def _build_style_block(
         self,
