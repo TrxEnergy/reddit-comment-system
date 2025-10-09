@@ -14,7 +14,7 @@ from src.publishing.models import (
 from src.publishing.local_account_manager import LocalAccountManager
 from src.publishing.reddit_client import RedditClient
 from src.publishing.random_scheduler import UniformRandomScheduler
-from src.publishing.pipeline_orchestrator import PublishingOrchestrator
+from src.publishing.pipeline_orchestrator import PipelineOrchestrator
 from src.publishing.scheduler_runner import SchedulerRunner
 
 __all__ = [
@@ -26,7 +26,7 @@ __all__ = [
     'LocalAccountManager',
     'RedditClient',
     'UniformRandomScheduler',
-    'PublishingOrchestrator',
+    'PipelineOrchestrator',
     'SchedulerRunner',
 ]
 

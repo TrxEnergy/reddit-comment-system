@@ -24,9 +24,11 @@ class PostCommentLimiter:
     数据结构：
     {
         "post_id": {
+            "status": "commented",  # 或 "attempted_failed"
             "account_ids": ["profile1", "profile2"],
             "first_comment_at": "2025-10-10T08:15:00",
-            "comment_count": 1
+            "comment_count": 1,
+            "failure_reason": null  # attempted_failed时记录原因
         }
     }
     """
@@ -77,9 +79,10 @@ class PostCommentLimiter:
         检查是否可以在该帖子发布评论
 
         规则：
-        1. 该帖子没有任何评论 → 可以
-        2. 该帖子已有评论 → 不可以（单帖子单评论）
-        3. 同一账号已评论该帖子 → 不可以（额外保护）
+        1. 该帖子没有任何记录 → 可以
+        2. 该帖子已成功发布评论 → 不可以
+        3. 该帖子尝试但失败（Top3不可回复）→ 不可以
+        4. 同一账号已评论该帖子 → 不可以（额外保护）
 
         Args:
             post_id: Reddit帖子ID
@@ -98,19 +101,29 @@ class PostCommentLimiter:
 
         post_record = self.post_comment_history[post_id]
 
-        # 检查1：该帖子是否已有评论
-        if post_record['comment_count'] > 0:
+        # 检查1：该帖子状态
+        status = post_record.get('status', 'commented')
+
+        if status == 'commented' and post_record.get('comment_count', 0) > 0:
             logger.debug(
-                f"Post already has comments",
+                "帖子已有评论，跳过",
                 post_id=post_id,
                 comment_count=post_record['comment_count']
             )
             return False
 
-        # 检查2：同一账号是否已评论该帖子（额外保护）
-        if account_id in post_record['account_ids']:
+        if status == 'attempted_failed':
             logger.debug(
-                f"Account already commented on this post",
+                "帖子已尝试但失败，跳过",
+                post_id=post_id,
+                failure_reason=post_record.get('failure_reason')
+            )
+            return False
+
+        # 检查2：同一账号是否已评论该帖子（额外保护）
+        if account_id in post_record.get('account_ids', []):
+            logger.debug(
+                "账号已操作过该帖子，跳过",
                 post_id=post_id,
                 account_id=account_id
             )
@@ -125,7 +138,7 @@ class PostCommentLimiter:
         account_id: str
     ):
         """
-        记录评论发布
+        记录评论发布成功
 
         Args:
             post_id: Reddit帖子ID
@@ -136,24 +149,64 @@ class PostCommentLimiter:
         # 初始化帖子记录
         if post_id not in self.post_comment_history:
             self.post_comment_history[post_id] = {
+                'status': 'commented',
                 'account_ids': [],
                 'first_comment_at': now.isoformat(),
-                'comment_count': 0
+                'comment_count': 0,
+                'failure_reason': None
             }
 
         # 更新记录
         post_record = self.post_comment_history[post_id]
 
+        post_record['status'] = 'commented'
+
         if account_id not in post_record['account_ids']:
             post_record['account_ids'].append(account_id)
 
         post_record['comment_count'] += 1
+        post_record['failure_reason'] = None
 
         logger.info(
-            f"Recorded comment",
+            "记录评论成功",
             post_id=post_id,
             account_id=account_id,
             total_comments=post_record['comment_count']
+        )
+
+        # 自动保存
+        if self.auto_save:
+            self._save_to_file()
+
+    def mark_post_as_attempted(
+        self,
+        post_id: str,
+        account_id: str,
+        failure_reason: str = "all_top3_unavailable"
+    ):
+        """
+        标记帖子为"已尝试但失败"（Top3评论均不可回复）
+
+        Args:
+            post_id: Reddit帖子ID
+            account_id: 尝试使用的账号
+            failure_reason: 失败原因
+        """
+        now = datetime.now()
+
+        self.post_comment_history[post_id] = {
+            'status': 'attempted_failed',
+            'account_ids': [account_id],
+            'first_comment_at': now.isoformat(),
+            'comment_count': 0,
+            'failure_reason': failure_reason
+        }
+
+        logger.info(
+            "标记帖子为已尝试但失败",
+            post_id=post_id,
+            account_id=account_id,
+            failure_reason=failure_reason
         )
 
         # 自动保存

@@ -18,46 +18,60 @@ src/publishing/
 
 ### 2. ✅ 核心设计决策
 
-#### 发布策略（瀑布式）
+#### 发布策略（纯回复模式）
 ```
 1. 获取帖子的前3个热门评论ID
-2. 依次尝试回复：
-   ├─ 尝试回复第1热门评论 → 成功 ✅ 或失败 ↓
-   ├─ 尝试回复第2热门评论 → 成功 ✅ 或失败 ↓
-   ├─ 尝试回复第3热门评论 → 成功 ✅ 或失败 ↓
-   └─ 兜底：发布顶级评论（直接回复帖子）
+2. 随机打乱Top3顺序，依次尝试回复：
+   ├─ 尝试回复评论1 → 成功 ✅ 或失败 ↓
+   ├─ 尝试回复评论2 → 成功 ✅ 或失败 ↓
+   ├─ 尝试回复评论3 → 成功 ✅ 或失败 ↓
+   └─ 全部失败 → 标记为attempted_failed，跳过该帖子 ❌
 ```
+
+**关键特性**：
+- ❌ **不支持顶级评论**（redis_client强制检查parent_comment_id）
+- ✅ **失败记录机制**（PostCommentLimiter记录attempted_failed状态）
+- ✅ **避免重复尝试**（24小时内不再尝试已失败的帖子）
 
 #### 账号池管理
 - **数据源**: 本地tokens.jsonl文件（硬编码路径）
 - **路径**: `C:\Users\beima\Desktop\BaiduSyncdisk\Trx相关\reddit账号\tokens.jsonl`
 - **解耦**: 完全不依赖养号系统API
+- **Token策略**: 内存刷新，不写回文件
 
 #### 调度策略
-- **完全随机24小时分布**（消除人为模式）
+- **活跃窗口**: 6:00-02:00（20小时窗口）
+- **完全随机分布**（消除人为模式）
 - **每账号每天1条评论**
 - **动态账号池**（根据JSONL文件行数）
+- **统计验证**: Chi-square、熵、聚类检测
 
 ---
 
-## 📝 待实现模块清单
+## 📝 模块完成状态
 
-### 阶段1：账号管理（5小时）
+### ✅ 已完成模块（9个）
 
-#### local_account_manager.py
+1. ✅ `models.py` - 数据模型（含parent_comment_id支持）
+2. ✅ `top_comment_fetcher.py` - Top3评论获取器
+3. ✅ `post_comment_limiter.py` - 单帖子限制器（含attempted_failed状态）
+4. ✅ `local_account_manager.py` - 本地账号池管理器
+5. ✅ `token_refresher.py` - Token刷新器
+6. ✅ `reddit_client.py` - Reddit发布客户端（强制parent_comment_id）
+7. ✅ `random_scheduler.py` - 完全随机调度器（6:00-02:00窗口）
+8. ✅ `pipeline_orchestrator.py` - 发布管道编排器（Top3随机尝试逻辑）
+9. ✅ `scheduler_runner.py` - 调度运行器（M2-M5集成框架）
+
+### 🚧 待实现功能
+
+#### M4内容工厂集成
+在`scheduler_runner.py`的`_fetch_comment_from_m4()`中实现：
 ```python
-class LocalAccountManager:
-    """本地账号池管理器"""
-
-    ACCOUNTS_FILE = r"C:\Users\beima\Desktop\BaiduSyncdisk\Trx相关\reddit账号\tokens.jsonl"
-
-    def load_accounts(self) -> List[RedditAccount]:
-        """从JSONL加载所有账号"""
-        pass
-
-    def get_available_accounts(self) -> List[str]:
-        """获取可用账号列表（未锁定+有配额）"""
-        pass
+# TODO:
+# 1. 从M2发现帖子
+# 2. 通过M3筛选
+# 3. 从M4生成评论
+# 4. 返回PublishRequest
 
     def acquire_account(self, profile_id: str, task_id: str) -> bool:
         """锁定账号"""
