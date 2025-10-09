@@ -1,0 +1,71 @@
+version: "1.0.0"
+last_updated: "2025-10-09"
+
+hard_bans:
+  phrases:
+    - "guaranteed profit"
+    - "sure thing"
+    - "pump"
+    - "dump"
+    - "free money"
+    - "DM me"
+    - "buy now"
+    - "act fast"
+    - "limited time"
+    - "insider info"
+    - "can't lose"
+    - "risk-free"
+
+  patterns:
+    - regex: "https?://(?!.*(reddit\\.com|github\\.com|ethereum\\.org))"
+      description: "非白名单外链"
+    - regex: "telegram|discord|whatsapp"
+      description: "私信渠道引导"
+    - regex: "referral|ref code|use my code"
+      description: "推荐码"
+
+  links:
+    allow: false
+    whitelist:
+      - "reddit.com"
+      - "github.com"
+      - "ethereum.org"
+      - "bitcoin.org"
+      - "tron.network"
+      - "etherscan.io"
+      - "tronscan.org"
+
+  private_contact: false
+
+soft_rules:
+  emotional_intensity:
+    max_level: 2
+    check_words: ["amazing", "terrible", "insane", "ridiculous", "unbelievable"]
+
+  absolutism:
+    max_ratio: 0.1
+    trigger_words: ["must", "always", "never", "everyone", "nobody", "impossible", "certain"]
+
+  length:
+    min_chars: 20
+    max_chars: 600
+    optimal_range: [50, 400]
+
+  sentence_variety:
+    min_sentence_types: 2
+    max_repeated_structure: 0.5
+
+  finance_disclaimer:
+    auto_append: true
+    text: "Not financial advice."
+    trigger_intent_groups: ["A", "B"]
+
+enforcement:
+  rewrite_on_soft_violation: true
+  block_on_hard_violation: true
+  log_all_violations: true
+  grace_period_days: 0
+
+audit:
+  retention_days: 90
+  alert_threshold: 5

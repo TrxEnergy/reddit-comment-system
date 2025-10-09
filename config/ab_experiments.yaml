@@ -1,0 +1,39 @@
+version: "1.0.0"
+last_updated: "2025-10-09"
+enabled: false
+
+experiments:
+  - id: "tone_clarity_cc"
+    name: "r/CryptoCurrency语气清晰度试验"
+    scope:
+      subreddits: ["CryptoCurrency"]
+    variants:
+      A:
+        tone: "neutral_sober"
+        description: "标准中性语气"
+      B:
+        tone: "friendly_practical"
+        description: "友好实用语气"
+    metric: "reply_rate_24h"
+    exposure: 0.2
+    duration_days: 5
+    success_criteria:
+      min_sample_size: 50
+      significance_level: 0.05
+    status: "draft"
+
+  - id: "catchphrase_density"
+    name: "口头禅密度影响"
+    scope:
+      personas: ["crypto_expert", "gas_optimizer"]
+    variants:
+      A:
+        catchphrase_max_ratio: 0.20
+        description: "标准20%口头禅"
+      B:
+        catchphrase_max_ratio: 0.10
+        description: "降低至10%口头禅"
+    metric: "natural_score"
+    exposure: 0.3
+    duration_days: 7
+    status: "draft"

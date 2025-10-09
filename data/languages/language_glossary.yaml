@@ -1,0 +1,80 @@
+version: "1.0.0"
+last_updated: "2025-10-09"
+
+terms:
+  - key: "TRC20"
+    en: "TRC20"
+    zh: "TRC20"
+    es: "TRC20"
+    notes: "保持大写，所有语言统一"
+
+  - key: "USDT"
+    en: "USDT"
+    zh: "USDT"
+    es: "USDT"
+    notes: "Tether稳定币代号，不翻译"
+
+  - key: "withdrawal_fee"
+    en: "withdrawal fee"
+    zh: "提现手续费"
+    es: "tarifa de retiro"
+
+  - key: "gas_fee"
+    en: "gas fee"
+    zh: "燃料费"
+    es: "tarifa de gas"
+
+  - key: "energy"
+    en: "energy"
+    zh: "能量"
+    es: "energía"
+    notes: "TRON网络特定概念"
+
+  - key: "bandwidth"
+    en: "bandwidth"
+    zh: "带宽"
+    es: "ancho de banda"
+    notes: "TRON网络特定概念"
+
+  - key: "wallet"
+    en: "wallet"
+    zh: "钱包"
+    es: "billetera"
+
+  - key: "stuck_transaction"
+    en: "stuck transaction"
+    zh: "卡顿交易"
+    es: "transacción atascada"
+
+mixing_examples:
+  zh_en:
+    - "USDT 手续费 too high on ERC20, try TRC20 if possible"
+    - "TRON 能量 can reduce USDT transfer fee significantly"
+    - "提现到 TRC20 address 最便宜，但要注意 exchange 是否支持"
+
+  es_en:
+    - "La tarifa de retiro de USDT es lower on TRC20 than ERC20"
+    - "Usa TRC20 para ahorrar fees, es más rápido también"
+    - "El withdrawal puede tardar 10-30 min, depende del exchange"
+
+mixing_policy:
+  preferred_order: ["en", "mix", "local"]
+  min_non_english_ratio: 0.2
+  max_code_switching_per_sentence: 2
+
+  rules:
+    - "关键术语（TRC20/USDT/fee/energy）固定英文"
+    - "动词和连接词可用母语，提升可读性"
+    - "数字和单位保持英文格式（$10, 5 USDT）"
+    - "混写时保持语法自然，避免生硬拼接"
+
+language_distribution:
+  en: 0.70
+  es: 0.15
+  zh: 0.10
+  other: 0.05
+
+metadata:
+  supported_languages: ["en", "es", "zh"]
+  total_terms: 8
+  mixing_personas: ["multilingual_user"]
