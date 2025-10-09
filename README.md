@@ -44,8 +44,8 @@ docker-compose exec comment-system pytest tests/unit/ -v
 
 - ✅ **M1: 基础设施** - 配置、日志、Docker环境
 - ✅ **M2: 发现引擎** - Reddit帖子发现和去重（30簇、5通道、3账号轮换）
-- 🚧 **M3: 评论生成** - GPT-4驱动的评论生成系统
-- 🚧 **M4: 内容工厂** - Persona化内容生成
+- ✅ **M3: 智能筛选** - 动态两层质量筛选（L1 TF-IDF + L2 GPT-4o-mini，1-200账号自适应）
+- 🚧 **M4: 内容工厂** - Persona化评论生成
 - 🚧 **M5: 发布协调** - 账号预留和Reddit发布
 
 ### Module 2: 发现引擎（v0.2.0）
@@ -58,7 +58,19 @@ docker-compose exec comment-system pytest tests/unit/ -v
 - **质量控制** - 4种去重策略 + 完整质量过滤
 - **产能配方** - quick_scan, standard, deep_dive三种内置配方
 
-详见 [Module 2技术文档](docs/MODULE_2_DISCOVERY.md)
+### Module 3: 智能筛选系统（v0.3.0）
+
+动态两层帖子质量筛选，支持：
+- **动态池子规模** - 根据活跃账号数自动计算（公式：账号数 × 1评论 × 3倍buffer）
+- **L1快速筛选** - TF-IDF话题分析 + 4维评分 + 三级路由（10-20帖/秒）
+- **L2深度筛选** - GPT-4o-mini异步并发评估（10并发，含评论角度建议）
+- **成本守护** - 日/月成本追踪和自动熔断（日限$0.50，月限$15.00）
+- **弹性适配** - 1-200账号无缝支持，月成本$0.68-$13.50
+- **三档阈值** - 小规模高质量(0.70)、中规模均衡(0.65)、大规模高效(0.60)
+
+**技术文档**:
+- [Module 2: 发现引擎](docs/MODULE_2_DISCOVERY.md)
+- [Module 3: 智能筛选](docs/MODULE_3_SCREENING.md)
 
 ### 配置说明
 
