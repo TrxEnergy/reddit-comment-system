@@ -156,7 +156,8 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
-        case_sensitive=False
+        case_sensitive=False,
+        extra="ignore"  # 忽略.env中未定义的额外字段
     )
 
     yanghao: YanghaoAPIConfig = Field(default_factory=YanghaoAPIConfig)
