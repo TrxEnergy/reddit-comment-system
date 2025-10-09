@@ -4,8 +4,50 @@
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
+from dataclasses import dataclass, field
+
+
+@dataclass
+class RawPost:
+    """原始Reddit帖子（用于发现引擎）"""
+
+    post_id: str
+    cluster_id: str
+    title: str
+    author: str
+    score: int
+    num_comments: int
+    created_utc: float
+    url: str = ""
+    permalink: str = ""
+    selftext: str = ""
+    is_self: bool = False
+    over_18: bool = False
+    spoiler: bool = False
+    stickied: bool = False
+    raw_json: Dict = field(default_factory=dict)
+    discovered_at: datetime = field(default_factory=datetime.now)
+
+    def to_dict(self) -> Dict:
+        return {
+            "post_id": self.post_id,
+            "cluster_id": self.cluster_id,
+            "title": self.title,
+            "author": self.author,
+            "score": self.score,
+            "num_comments": self.num_comments,
+            "created_utc": self.created_utc,
+            "url": self.url,
+            "permalink": self.permalink,
+            "selftext": self.selftext,
+            "is_self": self.is_self,
+            "over_18": self.over_18,
+            "spoiler": self.spoiler,
+            "stickied": self.stickied,
+            "discovered_at": self.discovered_at.isoformat(),
+        }
 
 
 class RedditPost(BaseModel):

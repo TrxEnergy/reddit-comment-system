@@ -7,6 +7,7 @@ import json
 import os
 from typing import List
 from datetime import datetime
+from dataclasses import dataclass
 
 from src.discovery.cluster_models import KeywordCluster, SearchIntent
 from src.core.logging import get_logger
@@ -14,8 +15,55 @@ from src.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+@dataclass
+class SubredditCluster:
+    """Subreddit簇（用于发现引擎）"""
+    subreddit_name: str
+    category: str
+    description: str = ""
+
+
 class ClusterBuilder:
     """关键词簇构建器"""
+
+    def get_all_clusters(self) -> List[SubredditCluster]:
+        """获取所有Subreddit簇（30个）"""
+        return [
+            SubredditCluster("CryptoCurrency", "crypto_general", "General crypto discussion"),
+            SubredditCluster("Bitcoin", "crypto_general", "Bitcoin community"),
+            SubredditCluster("ethereum", "crypto_general", "Ethereum discussion"),
+            SubredditCluster("CryptoTechnology", "crypto_general", "Crypto tech"),
+            SubredditCluster("CryptoMarkets", "trading", "Market analysis"),
+            SubredditCluster("altcoin", "crypto_general", "Altcoin discussion"),
+            SubredditCluster("BlockChain", "crypto_general", "Blockchain tech"),
+            SubredditCluster("defi", "crypto_general", "DeFi ecosystem"),
+
+            SubredditCluster("Tronix", "tron_ecosystem", "Official TRON"),
+            SubredditCluster("TronTRX", "tron_ecosystem", "TRON TRX"),
+            SubredditCluster("Tronscan", "tron_ecosystem", "TRON explorer"),
+            SubredditCluster("JustStable", "tron_ecosystem", "USDD stablecoin"),
+            SubredditCluster("SunSwap", "tron_ecosystem", "SunSwap DEX"),
+            SubredditCluster("TronLink", "tron_ecosystem", "TronLink wallet"),
+
+            SubredditCluster("SatoshiStreetBets", "trading", "Crypto trading bets"),
+            SubredditCluster("CryptoMoonShots", "meme_culture", "Moonshot coins"),
+            SubredditCluster("CryptoCurrencyTrading", "trading", "Trading discussion"),
+            SubredditCluster("CoinMarketCap", "trading", "CMC community"),
+            SubredditCluster("binance", "trading", "Binance exchange"),
+            SubredditCluster("CoinBase", "trading", "Coinbase users"),
+
+            SubredditCluster("ethdev", "development", "Ethereum dev"),
+            SubredditCluster("CryptoDev", "development", "Crypto development"),
+            SubredditCluster("bitcoindev", "development", "Bitcoin dev"),
+            SubredditCluster("solidity", "development", "Solidity language"),
+            SubredditCluster("web3", "development", "Web3 development"),
+
+            SubredditCluster("SatoshiStreetDegens", "meme_culture", "Degen culture"),
+            SubredditCluster("CryptoMeme", "meme_culture", "Crypto memes"),
+            SubredditCluster("CryptoHumor", "meme_culture", "Crypto humor"),
+            SubredditCluster("dogecoin", "meme_culture", "Dogecoin community"),
+            SubredditCluster("Shibainucoin", "meme_culture", "Shiba Inu"),
+        ]
 
     def build_clusters(self) -> List[KeywordCluster]:
         """构建完整的关键词簇池"""
