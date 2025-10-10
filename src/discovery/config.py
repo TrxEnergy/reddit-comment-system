@@ -16,12 +16,12 @@ class CredentialConfig(BaseModel):
         description="轮换策略: round_robin, random, least_used"
     )
     max_requests_per_credential: int = Field(
-        default=100,
-        description="单个凭据的最大请求数（触发轮换）"
+        default=600,
+        description="单个凭据的最大请求数（触发轮换）- Reddit允许600/小时"
     )
     credential_cooldown_minutes: int = Field(
-        default=30,
-        description="凭据冷却时间（分钟）"
+        default=60,
+        description="凭据冷却时间（分钟）- 对应Reddit的1小时限制"
     )
     enable_auto_refresh: bool = Field(
         default=True,
