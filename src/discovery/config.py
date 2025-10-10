@@ -16,8 +16,8 @@ class CredentialConfig(BaseModel):
         description="轮换策略: round_robin, random, least_used"
     )
     max_requests_per_credential: int = Field(
-        default=600,
-        description="单个凭据的最大请求数（触发轮换）- Reddit允许600/小时"
+        default=6000,
+        description="单个凭据的最大请求数（触发轮换）- Reddit允许100QPM=6000/小时"
     )
     credential_cooldown_minutes: int = Field(
         default=60,
@@ -138,8 +138,8 @@ class DeduplicationConfig(BaseModel):
 class RateLimitConfig(BaseModel):
     """速率限制配置"""
 
-    requests_per_minute: int = Field(default=60, description="每分钟请求数")
-    requests_per_hour: int = Field(default=600, description="每小时请求数")
+    requests_per_minute: int = Field(default=100, description="每分钟请求数（Reddit OAuth限制）")
+    requests_per_hour: int = Field(default=6000, description="每小时请求数（理论值100×60）")
     retry_attempts: int = Field(default=3, description="重试次数")
     retry_backoff_seconds: int = Field(default=5, description="重试退避时间（秒）")
 
