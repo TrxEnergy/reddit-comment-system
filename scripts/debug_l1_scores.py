@@ -41,6 +41,16 @@ def main():
     # 准备TF-IDF
     l1_filter._prepare_tfidf_vectorizer(posts)
 
+    # [FIX 2025-10-10] 先运行完整筛选，看返回结果
+    l1_results = l1_filter.filter_posts(posts)
+    print(f"\n完整筛选结果统计：")
+    print(f"  总计: {len(l1_results)}")
+    if l1_results:
+        print(f"  示例结果[0]: {l1_results[0]}")
+        print(f"  决策字段类型: {type(l1_results[0].decision)}")
+        print(f"  决策字段值: {l1_results[0].decision}")
+    print()
+
     # 逐个分析帖子
     for i, post in enumerate(posts[:10], 1):  # 只看前10个
         print(f"{'='*80}")

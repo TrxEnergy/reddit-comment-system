@@ -58,8 +58,9 @@ class L1FilterResult(BaseModel):
 
     processing_time_ms: float = Field(default=0.0, description="处理耗时（毫秒）")
 
-    class Config:
-        use_enum_values = True
+    # [FIX 2025-10-10] 移除use_enum_values，保持decision为枚举对象以便正确比较
+    # class Config:
+    #     use_enum_values = True
 
 
 class L2FilterResult(BaseModel):
