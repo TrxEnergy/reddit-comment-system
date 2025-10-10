@@ -65,7 +65,7 @@ class CapacityExecutor:
 
             # [2025-10-10] 如果已超过总目标,不再继续其他簇(但已处理的簇保留)
             if len(all_posts) >= recipe.max_posts:
-                print(f"  ℹ️ 已达到目标帖子数({recipe.max_posts}),停止搜索更多簇")
+                print(f"  [INFO] 已达到目标帖子数({recipe.max_posts}),停止搜索更多簇")
                 break
 
         self._print_summary(recipe, all_posts)

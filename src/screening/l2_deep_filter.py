@@ -152,9 +152,6 @@ class L2DeepFilter:
                 risk_level = result_data.get("risk_level", "medium")
                 reason = result_data.get("reason", "")
 
-                # [DEBUG 2025-10-10] 打印GPT实际返回结果
-                logger.info(f"L2评估 (帖子{post.post_id}): score={score}, pass={passed}, reason={reason}")
-
                 decision = FilterDecision.L2_PASS if (score >= self.pass_threshold and passed) else FilterDecision.L2_REJECT
 
                 processing_time = (time.time() - start_time) * 1000

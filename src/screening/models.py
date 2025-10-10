@@ -77,8 +77,9 @@ class L2FilterResult(BaseModel):
     processing_time_ms: float = Field(default=0.0, description="处理耗时（毫秒）")
     api_cost: float = Field(default=0.0015, description="API调用成本")
 
-    class Config:
-        use_enum_values = True
+    # [FIX 2025-10-10] 移除use_enum_values，保持decision为枚举对象以便正确比较
+    # class Config:
+    #     use_enum_values = True
 
 
 class ScreeningStats(BaseModel):
