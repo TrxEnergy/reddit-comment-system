@@ -75,31 +75,37 @@ class L2DeepFilter:
         """
         selftext_preview = post.selftext[:300] if post.selftext else "(无正文)"
 
-        prompt = f"""你是Reddit评论质量评估专家。当前运营{active_account_count}个账号，需平衡质量与成本。
+        # [2025-10-10] 通用加密货币相关性判断（不针对特定业务）
+        prompt = f"""你是Reddit内容评估专家。任务：判断帖子是否与加密货币相关。
 
 输入信息:
 - 标题: {post.title}
 - 正文摘要: {selftext_preview}
 - 子版: {post.cluster_id}
 - 热度: {post.score}赞 / {post.num_comments}评论
-- L1预评分: {l1_score:.2f}
 
-请以JSON格式输出评估结果:
+请以JSON格式输出:
 {{
   "score": 0.0-1.0,
   "pass": true/false,
-  "comment_angle": "推荐评论切入点（1句话）",
+  "comment_angle": "可以从哪个角度评论（1句话）",
   "risk_level": "low/medium/high",
-  "reason": "不超过30字说明"
+  "reason": "简要说明（不超过30字）"
 }}
 
-评分标准（{active_account_count}账号场景）:
-1. 话题价值(35%): 是否值得投入1/{active_account_count}的日配额
-2. 长期ROI(25%): 能否积累账号声誉/karma
-3. 互动安全(25%): 争议度、封号风险评估
-4. 评论可行性(15%): 是否需要专业知识/大量调研
+判断标准（极度宽松）:
+1. 只要提到以下任意内容，直接通过:
+   - 加密货币、虚拟货币、数字货币
+   - 区块链、Web3、DeFi、NFT
+   - 交易所、钱包、转账、手续费
+   - 比特币、以太坊、TRON、USDT等任何币种
+   - 挖矿、质押、流动性、Gas费
 
-通过阈值: ≥{self.pass_threshold}"""
+2. 只拒绝以下情况:
+   - 完全无关（如体育、娱乐、政治等）
+   - 高风险（色情、暴力、极端争议）
+
+注意: 宽松判断，只要沾边就通过！"""
 
         return prompt
 
@@ -145,6 +151,9 @@ class L2DeepFilter:
                 comment_angle = result_data.get("comment_angle", "")
                 risk_level = result_data.get("risk_level", "medium")
                 reason = result_data.get("reason", "")
+
+                # [DEBUG 2025-10-10] 打印GPT实际返回结果
+                logger.info(f"L2评估 (帖子{post.post_id}): score={score}, pass={passed}, reason={reason}")
 
                 decision = FilterDecision.L2_PASS if (score >= self.pass_threshold and passed) else FilterDecision.L2_REJECT
 

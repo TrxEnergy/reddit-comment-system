@@ -63,6 +63,13 @@ class ClusterBuilder:
             SubredditCluster("CryptoHumor", "meme_culture", "Crypto humor"),
             SubredditCluster("dogecoin", "meme_culture", "Dogecoin community"),
             SubredditCluster("Shibainucoin", "meme_culture", "Shiba Inu"),
+
+            # [2025-10-10] 高质量备用簇（预先验证，补充无效簇的损失）
+            SubredditCluster("crypto", "crypto_general", "General crypto (500K+ subs)"),
+            SubredditCluster("cryptomarkets", "crypto_general", "Crypto markets (600K+)"),
+            SubredditCluster("cryptocurrencies", "crypto_general", "Various cryptocurrencies (100K+)"),
+            SubredditCluster("cryptotrading", "trading", "Crypto trading (100K+)"),
+            SubredditCluster("wallstreetbetscrypto", "trading", "WSB Crypto (50K+)"),
         ]
 
     def build_clusters(self) -> List[KeywordCluster]:

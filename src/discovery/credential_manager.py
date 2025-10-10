@@ -157,9 +157,20 @@ class CredentialManager:
     def _is_credential_available(self, credential: Credential) -> bool:
         """检查凭据是否可用"""
 
-        if not credential.is_usable:
+        # [FIX 2025-10-10] 如果token过期，尝试自动刷新
+        if credential.is_expired:
+            if self.refresh_token(credential):
+                # 刷新成功，继续检查其他条件
+                pass
+            else:
+                # 刷新失败，凭据不可用
+                return False
+
+        # 检查冷却状态
+        if credential.is_in_cooldown:
             return False
 
+        # 检查请求计数，达到上限则进入冷却
         if credential.request_count >= self.config.max_requests_per_credential:
             credential.enter_cooldown(self.config.credential_cooldown_minutes)
             credential.reset_request_count()
@@ -169,13 +180,64 @@ class CredentialManager:
         return True
 
     def refresh_token(self, credential: Credential) -> bool:
-        """刷新token（TODO: 实现OAuth2刷新逻辑）"""
+        """刷新OAuth2 token"""
 
         if not self.config.enable_auto_refresh:
             return False
 
-        print(f"[TODO] 刷新token: {credential.profile_id}")
-        return False
+        # [FIX 2025-10-10] 实现真正的OAuth2 token刷新
+        import requests
+
+        try:
+            print(f"[Token刷新] {credential.profile_id}")
+
+            # Reddit OAuth2 token刷新端点
+            token_url = "https://www.reddit.com/api/v1/access_token"
+
+            # Basic Auth (client_id:client_secret)
+            auth = requests.auth.HTTPBasicAuth(
+                credential.client_id,
+                credential.client_secret
+            )
+
+            # 刷新请求
+            data = {
+                "grant_type": "refresh_token",
+                "refresh_token": credential.refresh_token
+            }
+
+            headers = {
+                "User-Agent": f"python:discovery:v1.0 (by /u/{credential.profile_id})"
+            }
+
+            response = requests.post(
+                token_url,
+                auth=auth,
+                data=data,
+                headers=headers,
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                token_data = response.json()
+
+                # 更新凭据
+                credential.access_token = token_data["access_token"]
+                credential.token_type = token_data.get("token_type", "bearer")
+                credential.expires_in = token_data.get("expires_in", 86400)
+                credential.token_created_at = time.time()
+
+                # 注意: refresh_token通常不会更新，沿用原值
+                print(f"[Token刷新成功] {credential.profile_id}")
+                return True
+            else:
+                print(f"[Token刷新失败 {response.status_code}] {credential.profile_id}")
+                print(f"   响应: {response.text[:200]}")
+                return False
+
+        except Exception as e:
+            print(f"[Token刷新异常] {credential.profile_id} - {e}")
+            return False
 
     def get_stats(self) -> Dict[str, any]:
         """获取统计信息"""

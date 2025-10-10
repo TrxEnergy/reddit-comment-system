@@ -174,7 +174,7 @@ class BudgetManager:
         )
 
         if self.status.exceeded:
-            print(f"⚠️ 预算超标: {self.status.exceeded_reason}")
+            print(f"[WARN] 预算超标: {self.status.exceeded_reason}")
         else:
-            print("✅ 预算正常")
+            print("[OK] 预算正常")
         print("================\n")

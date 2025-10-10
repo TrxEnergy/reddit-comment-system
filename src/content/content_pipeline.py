@@ -300,7 +300,7 @@ async def main():
 
     results = await pipeline.process_batch(test_data)
 
-    print(f"\n✅ Generated {len(results)} comments")
+    print(f"\n[OK] Generated {len(results)} comments")
     for comment in results:
         print(f"\n--- Comment ---")
         print(f"Persona: {comment.persona_used}")

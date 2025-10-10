@@ -153,9 +153,10 @@ class MultiChannelSearch:
                     else:
                         break
 
+        # [FIX 2025-10-10] 截断结果到max_posts,避免单个通道返回过多帖子
         return SearchResult(
             channel=channel.channel_name,
-            posts=posts,
+            posts=posts[:max_posts],
             fetch_time=datetime.now(),
             api_calls=api_calls,
             errors=errors,

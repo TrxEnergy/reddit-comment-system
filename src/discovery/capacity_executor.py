@@ -49,9 +49,8 @@ class CapacityExecutor:
         all_posts = []
 
         for cluster_id in cluster_ids:
-            if self.budget_manager.should_stop():
-                print(f"\n⚠️ 预算已用尽，停止执行")
-                break
+            # [FIX 2025-10-10] 移除簇之间的预算检查,确保每个簇都至少被处理一次
+            # 预算控制由_fetch_cluster_posts内部的max_posts限制
 
             print(f"\n处理簇: {cluster_id}")
 
@@ -64,6 +63,11 @@ class CapacityExecutor:
 
             print(f"  原始: {len(cluster_posts)} | 过滤后: {len(filtered_posts)} | 累计: {len(all_posts)}")
 
+            # [2025-10-10] 如果已超过总目标,不再继续其他簇(但已处理的簇保留)
+            if len(all_posts) >= recipe.max_posts:
+                print(f"  ℹ️ 已达到目标帖子数({recipe.max_posts}),停止搜索更多簇")
+                break
+
         self._print_summary(recipe, all_posts)
 
         return all_posts
@@ -73,7 +77,10 @@ class CapacityExecutor:
     ) -> List[RawPost]:
         """获取单个簇的帖子"""
 
-        posts_per_cluster = recipe.max_posts // 30
+        # [FIX 2025-10-10] 每簇搜索目标配额的3倍，为质量控制留出过滤空间
+        # 质量控制会拒绝约50-70%的帖子（too_old、stickied、duplicate等）
+        base_quota = max(1, recipe.max_posts // 30)
+        posts_per_cluster = base_quota * 3
 
         all_posts = []
 
@@ -89,6 +96,8 @@ class CapacityExecutor:
             if self.budget_manager.should_stop():
                 break
 
+        # 返回所有原始帖子，让质量控制在execute_recipe中过滤
+        # 不在此处截断，因为质量控制会大量拒绝帖子
         return all_posts
 
     def _print_summary(self, recipe: CapacityRecipeConfig, posts: List[RawPost]):
@@ -113,7 +122,7 @@ class CapacityExecutor:
         print(f"  运行时间: {budget_stats['runtime_seconds']}/{budget_stats['runtime_limit_seconds']} ({budget_stats['runtime_usage_percent']})")
 
         if budget_stats["exceeded"]:
-            print(f"  ⚠️ {budget_stats['exceeded_reason']}")
+            print(f"  [WARN] {budget_stats['exceeded_reason']}")
 
         print(f"\n【质量控制】")
         print(f"  总拒绝: {quality_stats['total_rejected']} 个")

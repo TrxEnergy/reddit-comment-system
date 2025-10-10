@@ -51,6 +51,13 @@ class RedditConfig(BaseSettings):
 
 class LocalAccountsConfig(BaseSettings):
     """本地账号文件配置"""
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+
     use_local_accounts: bool = Field(
         default=False,
         validation_alias=AliasChoices("USE_LOCAL_ACCOUNTS", "use_local_accounts"),

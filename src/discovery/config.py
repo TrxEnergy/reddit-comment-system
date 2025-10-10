@@ -90,9 +90,10 @@ class SearchChannelConfig(BaseModel):
 class QualityControlConfig(BaseModel):
     """质量控制配置"""
 
-    min_post_score: int = Field(default=10, description="最小帖子分数")
-    min_comment_count: int = Field(default=5, description="最小评论数")
-    max_post_age_hours: int = Field(default=72, description="最大帖子年龄（小时）")
+    # [2025-10-10] 极度宽松阈值,最大化帖子获取量
+    min_post_score: int = Field(default=0, description="最小帖子分数 - 允许0分甚至负分")
+    min_comment_count: int = Field(default=0, description="最小评论数 - 允许0评论")
+    max_post_age_hours: int = Field(default=720, description="最大帖子年龄（小时）- 30天")
     min_title_length: int = Field(default=10, description="最小标题长度")
     max_title_length: int = Field(default=300, description="最大标题长度")
 
