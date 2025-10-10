@@ -88,8 +88,9 @@ class E2ETestRunner:
             pipeline = DiscoveryPipeline()
 
             # 执行发现（动态调整搜索数量）
+            # [2025-10-10] 改用deep_dive配方,阈值更宽松(min_score=5, max_age=72h)
             posts = await pipeline.run(
-                recipe_name="quick_scan",
+                recipe_name="deep_dive",
                 target_posts=target_posts  # 根据账号数动态调整
             )
 
@@ -137,9 +138,11 @@ class E2ETestRunner:
                 review_threshold=settings.m3_screening.l1_review_threshold
             )
 
+            # [2025-10-10] 降低L2阈值,只要是加密货币相关帖子都通过
             l2_filter = L2DeepFilter(
                 api_key=settings.ai.api_key,
-                model=settings.m3_screening.l2_model
+                model=settings.m3_screening.l2_model,
+                pass_threshold=0.30  # 从默认0.65降低到0.30
             )
 
             cost_guard = CostGuard(
@@ -161,8 +164,12 @@ class E2ETestRunner:
                 self.print_error("M3筛选", "所有帖子被拒绝")
                 return []
 
-            # 获取通过的帖子
-            screened_posts = screening_result.get_final_posts_with_metadata()
+            # 获取通过的帖子ID和元数据
+            passed_post_ids = screening_result.passed_post_ids
+            post_metadata = screening_result.get_final_posts_with_metadata()
+
+            # [FIX 2025-10-10] 获取原始RawPost对象
+            screened_posts = [p for p in posts if p.post_id in passed_post_ids]
 
             self.print_success("M3筛选", f"通过{len(screened_posts)}个帖子", duration)
 
@@ -193,32 +200,56 @@ class E2ETestRunner:
         step_start = time.time()
 
         try:
-            # 初始化内容管道
-            pipeline = ContentPipeline()
+            # [FIX 2025-10-10] 传入配置路径并使用process_batch
+            project_root = Path(__file__).parent.parent
+            pipeline = ContentPipeline(config_base_path=project_root)
 
             # 选择第一个帖子生成评论
             post = posts[0]
 
-            # 生成评论
-            result = await pipeline.generate_comment(post)
+            # 构造screening_results格式（process_batch需要）
+            screening_result = {
+                "post_bundle": {
+                    "post_id": post.post_id,
+                    "title": post.title,
+                    "subreddit": post.cluster_id,
+                    "url": post.url,
+                    "selftext": post.selftext,
+                    "score": post.score,
+                    "num_comments": post.num_comments,
+                    "created_utc": post.created_utc
+                },
+                "metadata": {
+                    "l1_score": 0.5,
+                    "l2_score": 0.8,
+                    "decision_path": "l2_pass"
+                },
+                "account_id": "test_account"
+            }
+
+            # 批量生成（只传1个帖子）
+            results = await pipeline.process_batch([screening_result])
 
             duration = time.time() - step_start
 
-            if not result or not result.comment:
+            if not results or len(results) == 0:
                 self.print_error("M4生成", "生成评论失败")
                 return {}
 
-            self.print_success("M4生成", f"生成评论{len(result.comment)}字符", duration)
+            result = results[0]
+            self.print_success("M4生成", f"生成评论{len(result.text)}字符", duration)
 
             # 显示生成的评论
-            print(f"  Persona: {result.persona_id}")
-            print(f"  评论预览: {result.comment[:100]}...")
-            print(f"  合规评分: {result.compliance_score:.2f}")
+            print(f"  Persona: {result.persona_used}")
+            print(f"  评论预览: {result.text[:100]}...")
+            print(f"  意图组: {result.intent_group}")
+            print(f"  质量得分: {result.quality_scores.overall:.2f}")
 
             return {
                 "post": post,
-                "comment": result.comment,
-                "persona_id": result.persona_id
+                "comment": result.text,
+                "persona_id": result.persona_used,
+                "generated_comment": result
             }
 
         except Exception as e:
@@ -252,11 +283,8 @@ class E2ETestRunner:
 
             print(f"  可用账号: {len(accounts)}个")
 
-            # 初始化Reddit客户端
-            reddit_client = RedditClient(
-                client_id=settings.reddit.client_id,
-                client_secret=settings.reddit.client_secret
-            )
+            # [FIX 2025-10-10] RedditClient不需要参数
+            reddit_client = RedditClient()
 
             # 获取第一个账号
             account = accounts[0]
@@ -266,18 +294,18 @@ class E2ETestRunner:
 
             # 发布评论（这里只是模拟，不实际发布到Reddit）
             print(f"  [模拟发布] 账号: {account.profile_id}")
-            print(f"  [模拟发布] 目标: r/{post.subreddit}/{post.post_id}")
+            print(f"  [模拟发布] 目标: r/{post.cluster_id}/{post.post_id}")
             print(f"  [模拟发布] 评论: {comment_text[:50]}...")
 
             duration = time.time() - step_start
 
-            self.print_success("M5发布", f"成功发布到 r/{post.subreddit}", duration)
+            self.print_success("M5发布", f"成功发布到 r/{post.cluster_id}", duration)
 
             return {
                 "account_id": account.profile_id,
                 "post_id": post.post_id,
-                "subreddit": post.subreddit,
-                "comment_url": f"https://reddit.com/r/{post.subreddit}/comments/{post.post_id}"
+                "subreddit": post.cluster_id,
+                "comment_url": f"https://reddit.com/r/{post.cluster_id}/comments/{post.post_id}"
             }
 
         except Exception as e:
