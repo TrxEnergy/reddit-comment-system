@@ -20,12 +20,31 @@ class DiscoveryPipeline:
 
         self.config.storage_path.mkdir(parents=True, exist_ok=True)
 
-    async def run(self, recipe_name: str = "standard") -> List[RawPost]:
-        """运行发现管道"""
+    async def run(
+        self,
+        recipe_name: str = "standard",
+        target_posts: Optional[int] = None
+    ) -> List[RawPost]:
+        """
+        运行发现管道
+
+        Args:
+            recipe_name: 配方名称
+            target_posts: 目标帖子数（覆盖配方设置，用于动态调整）
+
+        Returns:
+            发现的帖子列表
+        """
 
         recipe = self._get_recipe(recipe_name)
         if not recipe:
             raise ValueError(f"配方不存在: {recipe_name}")
+
+        # [2025-10-10] 动态调整目标帖子数（基于账号数量）
+        if target_posts is not None:
+            original_max = recipe.max_posts
+            recipe.max_posts = target_posts
+            print(f"📊 动态调整搜索配额: {original_max} → {target_posts}个帖子\n")
 
         print(f"\n{'#'*60}")
         print(f"# Module 2 发现引擎启动")

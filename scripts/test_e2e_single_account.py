@@ -60,18 +60,38 @@ class E2ETestRunner:
     async def test_m2_discovery(self) -> list:
         """
         测试M2发现模块
-        使用quick_scan配方，发现1-3个帖子
+        动态计算需要的帖子数量（基于账号数）
         """
         self.print_header("阶段1: M2发现引擎")
 
         step_start = time.time()
 
         try:
+            # [2025-10-10] 根据账号数量动态计算搜索配额
+            account_manager = LocalAccountManager()
+            accounts = account_manager.load_accounts()
+            account_count = len(accounts)
+
+            # 计算池子规模：账号数 × 每日评论数 × 安全系数（3倍）
+            daily_comment_limit = 1  # 每账号每日1条评论
+            buffer_ratio = 3.0       # 安全系数3倍
+            pool_size = int(account_count * daily_comment_limit * buffer_ratio)
+
+            # 加缓冲确保有足够候选
+            target_posts = pool_size + 2  # 例：1个账号 = 3 + 2 = 5个帖子
+
+            print(f"  账号数量: {account_count}")
+            print(f"  池子规模: {pool_size}个（账号×{daily_comment_limit}×{buffer_ratio}）")
+            print(f"  搜索目标: {target_posts}个帖子（含缓冲）\n")
+
             # [FIX 2025-10-10] 修复DiscoveryPipeline初始化，recipe_name应传给run方法
             pipeline = DiscoveryPipeline()
 
-            # 执行发现（使用quick_scan配方）
-            posts = await pipeline.run(recipe_name="quick_scan")
+            # 执行发现（动态调整搜索数量）
+            posts = await pipeline.run(
+                recipe_name="quick_scan",
+                target_posts=target_posts  # 根据账号数动态调整
+            )
 
             duration = time.time() - step_start
 
