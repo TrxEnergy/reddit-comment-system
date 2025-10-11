@@ -38,7 +38,7 @@ async def test_e2e_with_template():
         variants_count=1  # 快速测试只生成1个变体
     )
 
-    print("\n✓ CommentGenerator初始化成功（模板模式启用）\n")
+    print("\n[OK] CommentGenerator初始化成功（模板模式启用）\n")
 
     # 3. 准备测试用例
     test_cases = [
@@ -49,9 +49,11 @@ async def test_e2e_with_template():
                 title="TRON转账手续费太高了，有什么办法降低吗？",
                 subreddit="Tronix",
                 account_id="test_acc_001",
+                account_username="test_user_001",
                 lang="zh",
                 score=15,
                 age_hours=2.5,
+                priority=0.8,
                 screening_metadata={"suggestion": "分享降低手续费的实用方法"}
             ),
             "style_guide": StyleGuide(
@@ -73,6 +75,9 @@ async def test_e2e_with_template():
             "intent_group": IntentGroup(
                 name="A",
                 description="费用相关问题",
+                positive_clues=["费用", "手续费", "价格"],
+                negative_lookalikes=["免费", "优惠"],
+                preferred_personas=["crypto_enthusiast"],
                 response_style={
                     "focus": "实用建议",
                     "must_include": "具体方法",
@@ -87,9 +92,11 @@ async def test_e2e_with_template():
                 title="High transfer fees are killing my crypto transactions",
                 subreddit="CryptoCurrency",
                 account_id="test_acc_002",
+                account_username="test_user_002",
                 lang="en",
                 score=42,
                 age_hours=5.2,
+                priority=0.7,
                 screening_metadata={"suggestion": "Share cost-saving experience"}
             ),
             "style_guide": StyleGuide(
@@ -111,6 +118,9 @@ async def test_e2e_with_template():
             "intent_group": IntentGroup(
                 name="A",
                 description="Fee-related issues",
+                positive_clues=["fee", "cost", "price"],
+                negative_lookalikes=["free", "discount"],
+                preferred_personas=["crypto_enthusiast"],
                 response_style={
                     "focus": "practical solutions",
                     "must_include": "personal experience",
@@ -141,22 +151,20 @@ async def test_e2e_with_template():
             print(f"链接政策: {test_case['style_guide'].compliance['link_policy']}")
             print(f"\n生成的评论:")
             print("-" * 70)
-            # 处理可能的编码问题
-            try:
-                print(result.text)
-            except UnicodeEncodeError:
-                print(result.text.encode('utf-8', errors='replace').decode('utf-8'))
+            # [FIX 2025-10-11] 跳过emoji避免Windows终端编码错误
+            safe_text = ''.join(c if ord(c) < 0x10000 else '[emoji]' for c in result.text)
+            print(safe_text)
             print("-" * 70)
 
             print(f"\n质量评分:")
             print(f"  - 整体: {result.quality_scores.overall:.2f}")
-            print(f"  - 自然度: {result.quality_scores.naturalness:.2f}")
+            print(f"  - 自然度: {result.quality_scores.natural:.2f}")
             print(f"  - 相关性: {result.quality_scores.relevance:.2f}")
-            print(f"  - 简洁性: {result.quality_scores.conciseness:.2f}")
             print(f"  - 合规性: {result.quality_scores.compliance:.2f}")
 
-            print(f"\n推广链接: {result.promoted_link if result.promoted_link else '无 (文字描述模式)'}")
-            print(f"生成耗时: {result.generation_time_ms}ms")
+            # [FIX 2025-10-11] promoted_link存储在audit字典中
+            promoted_link = result.audit.get('promoted_link')
+            print(f"\n推广链接: {promoted_link if promoted_link else '无 (文字描述模式)'}")
 
             print(f"\n[PASS] Test {i} passed")
 
@@ -173,10 +181,12 @@ def create_test_persona() -> Persona:
         name="Alex",
         background="Crypto enthusiast with 3 years of experience",
         tone="casual and helpful",
+        intent_groups=["A", "B", "C"],
         interests=["cryptocurrency", "DeFi", "blockchain"],
-        constraints=["avoid technical jargon", "be friendly"],
+        constraints={"style": "avoid technical jargon", "tone": "be friendly"},
         catchphrases={
             "opening": ["honestly", "tbh", "imo"],
+            "transition": ["btw", "also", "fwiw"],
             "ending": ["hope this helps", "good luck"]
         }
     )

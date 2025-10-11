@@ -169,13 +169,13 @@ class CommentGenerator:
             processed_variants.append(processed)
 
         # 4. 合规审查 + 自动附加免责声明
-        # [FIX 2025-10-10] 支持位置随机化（开头/中间/结尾）和概率性添加
+        # [FIX 2025-10-11] 简化免责声明逻辑
         compliant_variants = []
         for variant in processed_variants:
-            # 检查是否需要附加免责声明
+            # 检查是否需要附加免责声明（A/B组需要）
             if self.compliance_checker.should_auto_append_disclaimer(intent_group.name):
-                position, disclaimer = self.compliance_checker.get_disclaimer_insertion_strategy()
-                variant = self._insert_disclaimer(variant, disclaimer, position)
+                disclaimer = self.compliance_checker.get_disclaimer_text()
+                variant = self._insert_disclaimer(variant, disclaimer, "end")
 
             compliance_check = self.compliance_checker.check(variant)
 

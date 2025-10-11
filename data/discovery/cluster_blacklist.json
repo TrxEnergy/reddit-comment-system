@@ -1,0 +1,45 @@
+{
+  "blacklist": [
+    {
+      "subreddit": "BlockChain",
+      "reason": "private",
+      "added_at": "2025-10-10T12:55:12.992321",
+      "expires_at": "2025-10-17T12:55:12.992321",
+      "retry_count": 0,
+      "last_check": "2025-10-10T12:55:12.992321"
+    },
+    {
+      "subreddit": "TronTRX",
+      "reason": "banned",
+      "added_at": "2025-10-10T12:55:12.993326",
+      "expires_at": "2025-10-17T12:55:12.993326",
+      "retry_count": 0,
+      "last_check": "2025-10-10T12:55:12.993326"
+    },
+    {
+      "subreddit": "Tronscan",
+      "reason": "redirect",
+      "added_at": "2025-10-10T12:55:12.993326",
+      "expires_at": "2025-10-17T12:55:12.993326",
+      "retry_count": 0,
+      "last_check": "2025-10-10T12:55:12.993326"
+    },
+    {
+      "subreddit": "JustStable",
+      "reason": "redirect",
+      "added_at": "2025-10-10T12:55:12.993326",
+      "expires_at": "2025-10-17T12:55:12.993326",
+      "retry_count": 0,
+      "last_check": "2025-10-10T12:55:12.993326"
+    },
+    {
+      "subreddit": "CryptoDev",
+      "reason": "private",
+      "added_at": "2025-10-10T12:55:12.994326",
+      "expires_at": "2025-10-17T12:55:12.994326",
+      "retry_count": 0,
+      "last_check": "2025-10-10T12:55:12.994326"
+    }
+  ],
+  "updated_at": "2025-10-10T12:55:12.994326"
+}

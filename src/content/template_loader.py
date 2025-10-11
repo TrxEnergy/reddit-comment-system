@@ -94,11 +94,15 @@ class TemplateLoader:
         Returns:
             选中的模板字典，如果没有找到返回None
         """
-        # 意图组映射到类别
+        # [FIX 2025-10-11] 意图组映射到类别（支持简短格式A/B/C和完整格式）
         intent_to_category = {
             'A_fees_transfers': 'fee',
             'B_wallet_issues': 'wallet',
             'C_learning_share': 'saving',
+            # 简短格式支持
+            'A': 'fee',
+            'B': 'wallet',
+            'C': 'saving',
         }
 
         category = intent_to_category.get(intent_group)
@@ -117,8 +121,9 @@ class TemplateLoader:
         # 随机选择
         if candidates:
             selected = random.choice(candidates)
+            # [FIX 2025-10-11] 避免Windows终端编码错误 - 只记录安全字段
             logger.info(f"选中模板: lang={selected['lang']}, category={selected['category']}, "
-                       f"tone={selected['tone']}, text_preview={selected['text'][:30]}...")
+                       f"tone={selected['tone']}")
             return selected
 
         logger.warning(f"未找到匹配的模板: post_lang={post_lang}, category={category}")
