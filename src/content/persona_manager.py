@@ -232,10 +232,21 @@ class PersonaManager:
         """
         从候选列表中选择使用频率最少的Persona
 
+        [FIX 2025-10-11] 增加随机性：在使用次数相同的Persona中随机选择
+
         使用usage_stats计数器，选择计数最小的；
-        如果有多个相同计数，选择第一个（稳定排序）
+        如果有多个相同计数，随机选择一个
         """
-        return min(candidates, key=lambda p: self.usage_stats[p.id])
+        import random
+
+        # 找到最少使用次数
+        min_count = min(self.usage_stats.get(p.id, 0) for p in candidates)
+
+        # 筛选出使用次数等于最小值的所有Persona
+        least_used = [p for p in candidates if self.usage_stats.get(p.id, 0) == min_count]
+
+        # 从中随机选择
+        return random.choice(least_used)
 
     def mark_persona_used(
         self,
