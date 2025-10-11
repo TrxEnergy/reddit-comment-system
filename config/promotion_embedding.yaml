@@ -1,190 +1,421 @@
-version: "1.0.0"
-last_updated: "2025-10-10"
-description: "推广信息嵌入策略 - 完全去除硬推广，采用情境化自然提及"
+# Telegram频道推广配置
+# [REWRITE 2025-10-10] 链接直接从推广链接.txt硬编码
+# [FIX 2025-10-11] 移除概率控制，新增模板路径配置
+version: "2.1.0"
+last_updated: "2025-10-11"
+
+# [FIX 2025-10-11] 基础软文模板路径
+soft_promo_template_path: "C:\\Users\\beima\\Desktop\\BaiduSyncdisk\\Trx相关\\reddit账号\\基础软文模板.json"
 
 # 核心策略
 strategy:
-  explicit_promotion_ratio: 0.0  # 完全去除硬推广
-  soft_mention_ratio: 0.3  # 30%的评论自然提及优势
-  contextual_only: true  # 仅在相关情境下提及
+  telegram_link_promotion: true
+  # [DEPRECATED 2025-10-11] 以下概率控制已移除，现改为100%插入（由link_policy决定模式）
+  # insertion_probability_by_intent:
+  #   A: 0.70
+  #   B: 0.40
+  #   C: 0.60
+  contextual_matching: true
 
-# TRC20/TRON优势的自然提及方式
-soft_mentions:
-  trc20_advantages:
-    # 费用优势提及（最常用，50%权重）
-    - mention: "用TRC20通常手续费更低"
-      context: ["费用", "手续费", "转账成本", "gas"]
-      tone: "casual_factual"
-      weight: 0.5
+# 第一组链接池: luntria.org (100个)
+group_1_luntria:
+  domain: "luntria.org"
+  description: "通用工具和资源入口"
 
-    - mention: "个人习惯用TRC20，省gas"
-      context: ["费用优化", "省钱", "便宜"]
-      tone: "personal_experience"
-      weight: 0.3
+  onboarding:
+    - "https://start.luntria.org/guide"
+    - "https://begin.luntria.org/welcome"
+    - "https://launch.luntria.org/next"
+    - "https://enter.luntria.org/app"
+    - "https://join.luntria.org/member"
+    - "https://signup.luntria.org/free"
+    - "https://access.luntria.org/now"
+    - "https://connect.luntria.org/live"
+    - "https://move.luntria.org/forward"
+    - "https://step.luntria.org/into"
 
-    - mention: "试试TRC20网络，手续费基本1u以内"
-      context: ["高手续费抱怨", "转账贵"]
-      tone: "helpful_suggestion"
-      weight: 0.4
+  tools:
+    - "https://app.luntria.org/connect"
+    - "https://apps.luntria.org/tools"
+    - "https://tool.luntria.org/check"
+    - "https://tools.luntria.org/convert"
+    - "https://utility.luntria.org/scan"
+    - "https://portal.luntria.org/login"
+    - "https://panel.luntria.org/dashboard"
+    - "https://console.luntria.org/manage"
+    - "https://workspace.luntria.org/home"
+    - "https://studio.luntria.org/create"
 
-    - mention: "走TRC20能省不少，especially小额转账"
-      context: ["小额转账", "频繁交易"]
-      tone: "practical_tip"
-      weight: 0.4
+  help_support:
+    - "https://help.luntria.org/info"
+    - "https://helpdesk.luntria.org/support"
+    - "https://support.luntria.org/faq"
+    - "https://docs.luntria.org/setup"
+    - "https://doc.luntria.org/guide"
+    - "https://manual.luntria.org/start"
+    - "https://knowledge.luntria.org/base"
+    - "https://guide.luntria.org/steps"
+    - "https://wiki.luntria.org/intro"
+    - "https://learn.luntria.org/course"
 
-    # 速度优势提及（次常用，30%权重）
-    - mention: "TRC20网络一般确认更快"
-      context: ["转账慢", "到账时间", "确认速度"]
-      tone: "informative"
-      weight: 0.3
+  community:
+    - "https://open.luntria.org/chat"
+    - "https://community.luntria.org/topics"
+    - "https://club.luntria.org/room"
+    - "https://circle.luntria.org/forum"
+    - "https://hub.luntria.org/start"
+    - "https://group.luntria.org/join"
+    - "https://forum.luntria.org/thread"
+    - "https://board.luntria.org/discuss"
+    - "https://channel.luntria.org/updates"
+    - "https://network.luntria.org/global"
 
-    - mention: "推荐TRC20，速度和费用都ok"
-      context: ["选择网络", "哪个网络好"]
-      tone: "balanced_recommendation"
-      weight: 0.35
+  news:
+    - "https://news.luntria.org/latest"
+    - "https://newsroom.luntria.org/update"
+    - "https://press.luntria.org/release"
+    - "https://status.luntria.org/check"
+    - "https://status.luntria.org/live"
+    - "https://report.luntria.org/weekly"
+    - "https://insight.luntria.org/data"
+    - "https://update.luntria.org/patch"
+    - "https://updates.luntria.org/version"
+    - "https://info.luntria.org/about"
 
-    - mention: "TRON网络这块确实做得不错，快且便宜"
-      context: ["网络对比", "性能讨论"]
-      tone: "objective_assessment"
-      weight: 0.25
+  auth_security:
+    - "https://auth.luntria.org/teng"
+    - "https://auth.luntria.org/verify"
+    - "https://secure.luntria.org/access"
+    - "https://security.luntria.org/alert"
+    - "https://safe.luntria.org/entry"
+    - "https://account.luntria.org/profile"
+    - "https://accounts.luntria.org/manage"
+    - "https://id.luntria.org/connect"
+    - "https://identity.luntria.org/verify"
+    - "https://login.luntria.org/home"
 
-    # 适用性提及（少用，20%权重）
-    - mention: "大部分交易所都支持TRC20了"
-      context: ["兼容性", "支持度"]
-      tone: "factual_statement"
-      weight: 0.2
+  commerce:
+    - "https://shop.luntria.org/cart"
+    - "https://store.luntria.org/buy"
+    - "https://market.luntria.org/deal"
+    - "https://sale.luntria.org/today"
+    - "https://promo.luntria.org/offer"
+    - "https://promos.luntria.org/deals"
+    - "https://deal.luntria.org/discount"
+    - "https://offers.luntria.org/special"
+    - "https://business.luntria.org/start"
+    - "https://partner.luntria.org/join"
 
-    - mention: "日常USDT转账我一般用TRC20"
-      context: ["USDT", "稳定币"]
-      tone: "personal_habit"
-      weight: 0.25
+  events:
+    - "https://event.luntria.org/register"
+    - "https://events.luntria.org/live"
+    - "https://meet.luntria.org/online"
+    - "https://meeting.luntria.org/agenda"
+    - "https://session.luntria.org/info"
+    - "https://webinar.luntria.org/join"
+    - "https://conference.luntria.org/schedule"
+    - "https://summit.luntria.org/global"
+    - "https://expo.luntria.org/virtual"
+    - "https://campaign.luntria.org/launch"
 
-  usage_frequency: 0.3  # 30%符合条件的评论会提及
+  testing:
+    - "https://beta.luntria.org/try"
+    - "https://demo.luntria.org/live"
+    - "https://lab.luntria.org/test"
+    - "https://labs.luntria.org/preview"
+    - "https://test.luntria.org/page"
+    - "https://testing.luntria.org/feature"
+    - "https://sample.luntria.org/check"
+    - "https://trial.luntria.org/start"
+    - "https://sandbox.luntria.org/play"
+    - "https://preview.luntria.org/view"
 
-# 情境触发规则（只在相关场景下嵌入）
-contextual_embedding:
-  triggers:
-    - trigger_keywords: ["手续费高", "gas费", "转账贵", "fee expensive"]
-      response_template: "可以看看TRC20选项，{对比数据}"
-      mention_probability: 0.6  # 60%概率提及
+  resources:
+    - "https://service.luntria.org/contact"
+    - "https://services.luntria.org/info"
+    - "https://resource.luntria.org/files"
+    - "https://resources.luntria.org/tools"
+    - "https://download.luntria.org/app"
+    - "https://downloads.luntria.org/package"
+    - "https://library.luntria.org/data"
+    - "https://content.luntria.org/view"
+    - "https://assets.luntria.org/image"
+    - "https://cdn.luntria.org/file"
 
-    - trigger_keywords: ["转账慢", "到账时间", "confirmation slow"]
-      response_template: "TRC20网络一般{时间范围}就到，{经验分享}"
-      mention_probability: 0.5
+# 第二组链接池: GitHub Pages能源租赁
+group_2_energy:
+  domain: "github.io"
+  description: "TRX能源租赁专业服务"
 
-    - trigger_keywords: ["选什么网络", "ERC20 vs", "网络对比"]
-      response_template: "个人经验{网络选择}，因为{理由}"
-      mention_probability: 0.7
+  trxenergy:
+    core:
+      - "https://trxenergy.github.io/energy/"
+      - "https://trxenergy.github.io/power/"
+      - "https://trxenergy.github.io/rent/"
+      - "https://trxenergy.github.io/fee/"
+      - "https://trxenergy.github.io/usdt/"
+    extended:
+      - "https://trxenergy.github.io/boost/"
+      - "https://trxenergy.github.io/chain/"
+      - "https://trxenergy.github.io/charge/"
+      - "https://trxenergy.github.io/community/"
+      - "https://trxenergy.github.io/connect/"
+      - "https://trxenergy.github.io/credit/"
+      - "https://trxenergy.github.io/earn/"
+      - "https://trxenergy.github.io/future/"
+      - "https://trxenergy.github.io/global/"
+      - "https://trxenergy.github.io/growth/"
+      - "https://trxenergy.github.io/join/"
+      - "https://trxenergy.github.io/lease/"
+      - "https://trxenergy.github.io/mine/"
+      - "https://trxenergy.github.io/network/"
+      - "https://trxenergy.github.io/node/"
+      - "https://trxenergy.github.io/official/"
+      - "https://trxenergy.github.io/pool/"
+      - "https://trxenergy.github.io/portal/"
+      - "https://trxenergy.github.io/release/"
+      - "https://trxenergy.github.io/saving/"
+      - "https://trxenergy.github.io/secure/"
+      - "https://trxenergy.github.io/smart/"
+      - "https://trxenergy.github.io/stake/"
+      - "https://trxenergy.github.io/update/"
+      - "https://trxenergy.github.io/wallet/"
 
-    - trigger_keywords: ["USDT转账", "稳定币", "stablecoin transfer"]
-      response_template: "{场景描述}，TRC20是个不错的选择，{优点}"
-      mention_probability: 0.4
+  trxrent:
+    core:
+      - "https://trxrent.github.io/rent"
+      - "https://trxrent.github.io/energy"
+      - "https://trxrent.github.io/power"
+      - "https://trxrent.github.io/lowfee"
+      - "https://trxrent.github.io/usdt"
+    extended:
+      - "https://trxrent.github.io/bandwidth"
+      - "https://trxrent.github.io/freeze"
+      - "https://trxrent.github.io/unfreeze"
+      - "https://trxrent.github.io/saving"
+      - "https://trxrent.github.io/fast"
+      - "https://trxrent.github.io/global"
+      - "https://trxrent.github.io/tron"
+      - "https://trxrent.github.io/wallet"
+      - "https://trxrent.github.io/recharge"
+      - "https://trxrent.github.io/gas"
+      - "https://trxrent.github.io/instant"
+      - "https://trxrent.github.io/safe"
+      - "https://trxrent.github.io/daily"
+      - "https://trxrent.github.io/cheap"
+      - "https://trxrent.github.io/stable"
+      - "https://trxrent.github.io/boost"
+      - "https://trxrent.github.io/trxsave"
+      - "https://trxrent.github.io/tronenergy"
+      - "https://trxrent.github.io/smart"
+      - "https://trxrent.github.io/globalrent"
+      - "https://trxrent.github.io/earn"
+      - "https://trxrent.github.io/speed"
+      - "https://trxrent.github.io/deposit"
+      - "https://trxrent.github.io/link"
+      - "https://trxrent.github.io/promo"
 
-    - trigger_keywords: ["小额", "频繁交易", "多次转账"]
-      response_template: "{建议}用TRC20，{成本分析}"
-      mention_probability: 0.5
+  energyrent:
+    core:
+      - "https://energyrent.github.io/rent"
+      - "https://energyrent.github.io/energy"
+      - "https://energyrent.github.io/power"
+      - "https://energyrent.github.io/lowfee"
+      - "https://energyrent.github.io/usdt"
+    extended:
+      - "https://energyrent.github.io/bandwidth"
+      - "https://energyrent.github.io/freeze"
+      - "https://energyrent.github.io/unfreeze"
+      - "https://energyrent.github.io/saving"
+      - "https://energyrent.github.io/fast"
+      - "https://energyrent.github.io/global"
+      - "https://energyrent.github.io/tron"
+      - "https://energyrent.github.io/wallet"
+      - "https://energyrent.github.io/recharge"
+      - "https://energyrent.github.io/gas"
+      - "https://energyrent.github.io/instant"
+      - "https://energyrent.github.io/safe"
+      - "https://energyrent.github.io/daily"
+      - "https://energyrent.github.io/cheap"
+      - "https://energyrent.github.io/stable"
+      - "https://energyrent.github.io/boost"
+      - "https://energyrent.github.io/trxsave"
+      - "https://energyrent.github.io/tronenergy"
+      - "https://energyrent.github.io/smart"
+      - "https://energyrent.github.io/globalrent"
+      - "https://energyrent.github.io/earn"
+      - "https://energyrent.github.io/speed"
+      - "https://energyrent.github.io/deposit"
+      - "https://energyrent.github.io/link"
+      - "https://energyrent.github.io/promo"
 
-    - trigger_keywords: ["新手", "第一次", "beginner"]
-      response_template: "新手的话推荐{方案}，{简单理由}"
-      mention_probability: 0.3  # 新手场景少提，避免推销感
+  poweruptrx:
+    core:
+      - "https://poweruptrx.github.io/energy/"
+      - "https://poweruptrx.github.io/power/"
+      - "https://poweruptrx.github.io/rent/"
+      - "https://poweruptrx.github.io/fee/"
+      - "https://poweruptrx.github.io/usdt/"
+    extended:
+      - "https://poweruptrx.github.io/powerup/"
+      - "https://poweruptrx.github.io/resource/"
+      - "https://poweruptrx.github.io/trxenergy/"
+      - "https://poweruptrx.github.io/energyrent/"
+      - "https://poweruptrx.github.io/rental/"
+      - "https://poweruptrx.github.io/lease/"
+      - "https://poweruptrx.github.io/reduce/"
+      - "https://poweruptrx.github.io/savegas/"
+      - "https://poweruptrx.github.io/global/"
+      - "https://poweruptrx.github.io/official/"
+      - "https://poweruptrx.github.io/gateway/"
+      - "https://poweruptrx.github.io/hub/"
+      - "https://poweruptrx.github.io/center/"
+      - "https://poweruptrx.github.io/instant/"
+      - "https://poweruptrx.github.io/speed/"
+      - "https://poweruptrx.github.io/smart/"
+      - "https://poweruptrx.github.io/auto/"
+      - "https://poweruptrx.github.io/contract/"
+      - "https://poweruptrx.github.io/network/"
+      - "https://poweruptrx.github.io/system/"
+      - "https://poweruptrx.github.io/node/"
+      - "https://poweruptrx.github.io/connect/"
+      - "https://poweruptrx.github.io/channel/"
+      - "https://poweruptrx.github.io/tron/"
+      - "https://poweruptrx.github.io/trxboost/"
 
-  # 反向触发（这些情境下完全不提及）
-  avoid_contexts:
-    - "价格预测"
-    - "投机讨论"
-    - "moon/lambo"
-    - "pump/dump"
-    - "meme币"
-    - "NFT"
-    - "DeFi yield farming"
+  energyshift:
+    core:
+      - "https://energyshift.github.io/energy/"
+      - "https://energyshift.github.io/power/"
+      - "https://energyshift.github.io/rent/"
+      - "https://energyshift.github.io/fee/"
+      - "https://energyshift.github.io/usdt/"
+    extended:
+      - "https://energyshift.github.io/powerup/"
+      - "https://energyshift.github.io/resource/"
+      - "https://energyshift.github.io/trxenergy/"
+      - "https://energyshift.github.io/energyrent/"
+      - "https://energyshift.github.io/rental/"
+      - "https://energyshift.github.io/lease/"
+      - "https://energyshift.github.io/reduce/"
+      - "https://energyshift.github.io/savegas/"
+      - "https://energyshift.github.io/global/"
+      - "https://energyshift.github.io/official/"
+      - "https://energyshift.github.io/gateway/"
+      - "https://energyshift.github.io/hub/"
+      - "https://energyshift.github.io/center/"
+      - "https://energyshift.github.io/instant/"
+      - "https://energyshift.github.io/speed/"
+      - "https://energyshift.github.io/smart/"
+      - "https://energyshift.github.io/auto/"
+      - "https://energyshift.github.io/contract/"
+      - "https://energyshift.github.io/network/"
+      - "https://energyshift.github.io/system/"
+      - "https://energyshift.github.io/node/"
+      - "https://energyshift.github.io/connect/"
+      - "https://energyshift.github.io/channel/"
+      - "https://energyshift.github.io/tron/"
+      - "https://energyshift.github.io/trxboost/"
 
-# 提及方式分层控制
-mention_style_by_intent:
-  intent_A_fees:  # 费用转账意图 - 最自然
-    mention_probability: 0.5
-    styles:
-      - "personal_experience"  # "我一般用TRC20"
-      - "practical_comparison"  # "对比下来TRC20更划算"
-      - "data_backed"  # "实测TRC20手续费1u"
+# 意图组匹配策略
+intent_group_strategies:
+  A_fees_transfers:
+    probability: 0.70
+    preferred_categories:
+      - group: "group_2_energy"
+        subcategories: ["core", "extended"]
+        weight: 0.85
+      - group: "group_1_luntria"
+        subcategories: ["tools", "commerce"]
+        weight: 0.15
+    placement: "after_main_content"
 
-  intent_B_wallet:  # 钱包问题意图 - 次自然
-    mention_probability: 0.2
-    styles:
-      - "solution_oriented"  # "试试TRC20网络"
-      - "troubleshooting"  # "检查是不是选错网络了"
+  B_exchange_wallet:
+    probability: 0.40
+    preferred_categories:
+      - group: "group_1_luntria"
+        subcategories: ["tools", "help_support"]
+        weight: 0.60
+      - group: "group_2_energy"
+        subcategories: ["core"]
+        weight: 0.40
+    placement: "after_solution"
 
-  intent_C_learning:  # 学习意图 - 最少提及
-    mention_probability: 0.15
-    styles:
-      - "educational"  # "不同网络各有特点，TRC20主打低费用"
-      - "neutral_explanation"  # "TRC20就是波场网络"
+  C_learning_sharing:
+    probability: 0.60
+    preferred_categories:
+      - group: "group_1_luntria"
+        subcategories: ["onboarding", "help_support", "community"]
+        weight: 0.75
+      - group: "group_2_energy"
+        subcategories: ["core"]
+        weight: 0.25
+    placement: "end_as_bonus"
 
-# 账号分层的推广密度（与account_tiers.yaml联动）
-account_tier_density:
-  tier_1_lurker:  # 潜水型
-    base_mention_ratio: 0.2
-    max_mentions_per_week: 1
+# 自然嵌入模板
+natural_templates:
+  en:
+    contextual:
+      - "btw {link}"
+      - "check {link}"
+      - "fwiw {link}"
+      - "{link} helps"
+      - "see {link}"
 
-  tier_2_active:  # 活跃型
-    base_mention_ratio: 0.3
-    max_mentions_per_week: 2
+    experience:
+      - "I use {link}"
+      - "{link} worked for me"
+      - "{link} helped"
+      - "been using {link}"
+      - "{link} is useful"
 
-  tier_3_expert:  # 专家型
-    base_mention_ratio: 0.4
-    max_mentions_per_week: 3
+    resource:
+      - "{link} has tools"
+      - "{link} has info"
+      - "{link} covers this"
+      - "try {link}"
+      - "{link} might help"
 
-# 质量控制（避免过度推广）
-quality_control:
-  max_mention_ratio_per_comment: 0.15  # 单条评论推广内容不超过15%
-  min_value_added_words: 40  # 提及TRC20的评论至少40词有价值内容
-  require_context_relevance: true  # 必须与帖子主题相关
+  es:
+    contextual:
+      - "por cierto {link}"
+      - "revisa {link}"
+      - "{link} ayuda"
 
-  # 冷却机制
+    experience:
+      - "uso {link}"
+      - "{link} sirve"
+
+    resource:
+      - "mira {link}"
+      - "{link} tiene info"
+
+  zh:
+    contextual:
+      - "顺便 {link}"
+      - "看看 {link}"
+
+    experience:
+      - "用 {link}"
+      - "{link} 有帮助"
+
+    resource:
+      - "试试 {link}"
+      - "{link} 有工具"
+
+# 反检测规则
+anti_spam:
   cooldown:
-    same_subreddit_hours: 72  # 同子版72小时内最多提及1次
-    same_account_hours: 48  # 同账号48小时内最多提及1次
-    global_daily_limit: 50  # 全局每日最多50次提及
+    same_account_same_link_hours: 72
+    same_link_global_weekly_limit: 2
+    same_domain_per_subreddit_daily: 3
 
-  # 自然度检查
-  natural_indicators:
-    allow_direct_comparison: true  # 允许"TRC20 vs ERC20"对比
-    allow_personal_preference: true  # 允许"我喜欢用TRC20"
-    disallow_absolute_claims: true  # 禁止"TRC20是唯一选择"
-    disallow_urgency: true  # 禁止"赶紧用TRC20"
+  diversity:
+    min_unique_links_per_day: 10
+    template_rotation_required: true
+    max_link_ratio_per_batch: 0.60
 
-# 监控指标
-monitoring:
-  track_mention_frequency: true
-  track_detection_signals:
-    - "评论被删除率"
-    - "被downvote率"
-    - "被举报'spam'次数"
-  alert_threshold:
-    deletion_rate: 0.05  # 超过5%删除率触发告警
-    downvote_ratio: 0.3  # 超过30%差评率触发告警
-
-# 禁止的推广行为（红线）
-prohibited_behaviors:
-  - "直接链接到TRON官网"
-  - "提供referral code"
-  - "引导私信/Telegram"
-  - "使用'必须''一定''最好'等绝对词汇"
-  - "承诺收益或结果"
-  - "对比时贬低其他网络"
-  - "连续多条评论提及TRC20"
-
-# A/B测试配置
-ab_test:
-  enabled: false
-  control_group: 0.5  # 50%不嵌入推广
-  test_variations:
-    - name: "low_density"
-      mention_ratio: 0.15
-    - name: "medium_density"
-      mention_ratio: 0.30
-    - name: "high_density"
-      mention_ratio: 0.45
-  success_metrics:
-    - "engagement_rate"
-    - "spam_report_rate"
-    - "brand_awareness_lift"
+  compliance:
+    avoid_phrases: ["click here", "sign up now", "join today", "limited time"]
+    max_link_length_ratio: 0.15
+    require_contextual_relevance: true

@@ -63,29 +63,45 @@ class PromptBuilder:
         post: Dict[str, Any],
         intent_group: IntentGroup,
         style_guide: StyleGuide,
-        suggestion: str = ""
+        suggestion: str = "",
+        base_template: str = None
     ) -> str:
         """
         构建完整Prompt
+        [FIX 2025-10-10] 新增：传递post_lang到format_block
+        [FIX 2025-10-11] 改为模板加工模式
 
         Args:
             persona: Persona对象
-            post: 帖子信息（title/subreddit/score/age等）
+            post: 帖子信息（title/subreddit/score/age/lang等）
             intent_group: 意图组
             style_guide: 风格卡
             suggestion: M3的评论建议
+            base_template: 基础软文模板（来自template_loader）
 
         Returns:
             完整Prompt字符串
         """
-        blocks = [
-            self._build_role_block(persona),
-            self._build_context_block(post, style_guide, suggestion),
-            self._build_intent_block(intent_group),
-            self._build_style_block(style_guide, persona),
-            self._build_safety_block(intent_group),
-            self._build_format_block(style_guide)
-        ]
+        post_lang = post.get('lang', 'en')
+
+        # [FIX 2025-10-11] 如果提供了base_template，使用加工模式
+        if base_template:
+            blocks = [
+                self._build_role_block(persona),
+                self._build_template_adaptation_block(base_template, post, style_guide),
+                self._build_style_block(style_guide, persona),
+                self._build_brevity_constraints()
+            ]
+        else:
+            # 原有生成模式（保留向后兼容）
+            blocks = [
+                self._build_role_block(persona),
+                self._build_context_block(post, style_guide, suggestion),
+                self._build_intent_block(intent_group),
+                self._build_style_block(style_guide, persona),
+                self._build_safety_block(intent_group),
+                self._build_format_block(style_guide, post_lang)
+            ]
 
         prompt = "\n\n".join(blocks)
 
@@ -93,7 +109,9 @@ class PromptBuilder:
             "Built prompt",
             persona_id=persona.id,
             intent_group=intent_group.name,
-            subreddit=style_guide.subreddit
+            subreddit=style_guide.subreddit,
+            post_lang=post_lang,
+            mode="template_adaptation" if base_template else "generation"
         )
 
         return prompt
@@ -130,11 +148,13 @@ Your areas of interest: {', '.join(persona.interests[:3])}.
         """
         构建上下文Block
         包含帖子信息、子版风格和M3建议
+        [FIX 2025-10-10] 新增：语言检测和匹配
         """
         title = post.get('title', '')
         subreddit = post.get('subreddit', '')
         score = post.get('score', 0)
         age_hours = post.get('age_hours', 0)
+        post_lang = post.get('lang', 'en')
 
         freshness = "very fresh" if age_hours < 2 else "recent" if age_hours < 12 else "older"
 
@@ -143,6 +163,7 @@ Post: "{title}"
 Subreddit: r/{subreddit}
 Post score: {score} | Age: {age_hours:.1f}h ({freshness})
 Community tone: {style_guide.tone}
+Post language: {post_lang}
 """
 
         if suggestion:
@@ -279,12 +300,17 @@ No links, no private contact info, no referral codes.
 
         return block.strip()
 
-    def _build_format_block(self, style_guide: StyleGuide) -> str:
+    def _build_format_block(self, style_guide: StyleGuide, post_lang: str = 'en') -> str:
         """
         构建格式Block
         定义句式结构和多样性要求
+        [FIX 2025-10-10] 新增：语言匹配指令
         """
-        block = """[FORMAT]
+        lang_instruction = self._get_language_instruction(post_lang)
+
+        block = f"""[FORMAT]
+{lang_instruction}
+
 Structure:
 1. Opening with a catchphrase or direct response
 2. Main point with specific details or personal experience
@@ -295,4 +321,83 @@ Sentence variety:
 - Avoid repeating sentence structures
 - Use natural transitions
 """
+        return block.strip()
+
+    def _get_language_instruction(self, post_lang: str) -> str:
+        """
+        根据帖子语言生成语言匹配指令
+        """
+        lang_map = {
+            'en': "Write your comment in English, matching the post's language.",
+            'es': "Escribe tu comentario en español, matching el idioma del post.",
+            'zh': "用中文写评论，与帖子语言保持一致。",
+            'pt': "Escreva seu comentário em português, correspondendo ao idioma do post.",
+            'ru': "Напишите комментарий на русском языке, соответствующий языку поста."
+        }
+        return lang_map.get(post_lang, "Write your comment in the same language as the post.")
+
+    def _build_template_adaptation_block(
+        self,
+        base_template: str,
+        post: Dict,
+        style_guide: StyleGuide
+    ) -> str:
+        """
+        [新增 2025-10-11] 构建模板加工Block
+
+        将任务从"生成评论"改为"轻度加工模板"
+
+        Args:
+            base_template: 基础软文模板
+            post: 帖子信息
+            style_guide: 风格指南
+
+        Returns:
+            模板加工指令Block
+        """
+        post_title = post.get('title', '')
+        post_lang = post.get('lang', 'en')
+        subreddit = post.get('subreddit', '')
+
+        block = f"""[TASK: ADAPT TEMPLATE]
+Your task is to LIGHTLY ADAPT this template into a natural Reddit comment:
+
+Template: "{base_template}"
+
+Post context:
+- Title: "{post_title}"
+- Subreddit: r/{subreddit}
+- Post language: {post_lang}
+
+CRITICAL RULES:
+1. If template language matches post language → Use template directly or add MINIMAL filler words (tbh, imo, honestly)
+2. If languages differ → Translate but KEEP IT SHORT (under 30 words)
+3. DO NOT expand the template - stay close to original length
+4. DO NOT add questions, disclaimers, or extra sentences
+5. DO NOT explain or elaborate beyond the template
+6. Maintain the casual, direct tone of the original template
+
+Output ONLY the adapted comment text (no explanations):"""
+
+        return block.strip()
+
+    def _build_brevity_constraints(self) -> str:
+        """
+        [新增 2025-10-11] 构建简洁性约束Block
+
+        强制AI保持简短输出
+
+        Returns:
+            简洁性约束Block
+        """
+        block = """[BREVITY CONSTRAINTS]
+ABSOLUTE REQUIREMENTS:
+- Maximum 30 words total
+- Maximum 2 sentences
+- DO NOT add any content beyond adapting the template
+- DO NOT add "Not financial advice" or similar disclaimers (promotion will add them)
+- Keep it SHORT and DIRECT - users won't read long comments
+
+Output format: Just the adapted comment text, nothing else."""
+
         return block.strip()
