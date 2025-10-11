@@ -45,7 +45,7 @@ docker-compose exec comment-system pytest tests/unit/ -v
 - ✅ **M1: 基础设施** - 配置、日志、Docker环境
 - ✅ **M2: 发现引擎** - Reddit帖子发现和去重（30簇、5通道、3账号轮换）
 - ✅ **M3: 智能筛选** - 动态两层质量筛选（L1 TF-IDF + L2 GPT-4o-mini，1-200账号自适应）
-- 🚧 **M4: 内容工厂** - Persona化评论生成
+- ✅ **M4: 内容工厂** - 模板化评论生成（1000+模板、10语言、双模式推广）
 - 🚧 **M5: 发布协调** - 账号预留和Reddit发布
 
 ### Module 2: 发现引擎（v0.2.0）
@@ -68,9 +68,20 @@ docker-compose exec comment-system pytest tests/unit/ -v
 - **弹性适配** - 1-200账号无缝支持，月成本$0.68-$13.50
 - **三档阈值** - 小规模高质量(0.70)、中规模均衡(0.65)、大规模高效(0.60)
 
+### Module 4: 内容工厂（v2.1.0）
+
+模板化评论生成系统，支持：
+- **模板库** - 1000+条基础软文模板，覆盖10种语言（zh/en/es/pt/ar/hi/id/th/tr/vi）
+- **智能匹配** - 根据帖子语言和意图组自动选择模板（100%覆盖率）
+- **轻度加工** - AI在30词以内轻度加工模板，保持简洁性
+- **双模式推广** - 根据子版link_policy自动切换（URL插入 vs 文字描述）
+- **合规保证** - 自动检测子版链接政策，避免违规风险
+- **向后兼容** - 支持模板模式和生成模式无缝切换
+
 **技术文档**:
 - [Module 2: 发现引擎](docs/MODULE_2_DISCOVERY.md)
 - [Module 3: 智能筛选](docs/MODULE_3_SCREENING.md)
+- [Module 4: M4模板化改造报告](M4_TEMPLATE_UPGRADE_REPORT.md)
 
 ### 配置说明
 

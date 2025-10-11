@@ -7,6 +7,56 @@
 
 ---
 
+## [Unreleased]
+
+### Added
+
+#### M4模板化改造（v2.1.0）
+
+**新增组件**:
+- **模板加载器** (`src/content/template_loader.py`)
+  - 加载1000+条基础软文模板（10种语言）
+  - 智能选择：根据帖子语言和意图组匹配
+  - 索引优化：O(1)查询性能
+  - 覆盖率：30/30组合全部匹配（100%）
+
+- **双模式推广器** (`src/content/link_promoter.py`)
+  - URL插入模式（`link_policy: whitelist_only`）
+  - 文字描述模式（`link_policy: none`或`docs_and_github`）
+  - 支持en/zh/es/pt四种语言文字描述
+  - 自动检测子版链接政策并切换模式
+
+**核心变更**:
+- **Prompt构建器** (`src/content/prompt_builder.py`)
+  - AI任务从"生成"改为"轻度加工模板"
+  - 新增`_build_template_adaptation_block()`方法
+  - 新增`_build_brevity_constraints()`强制简洁性（30词以内）
+
+- **评论生成器** (`src/content/comment_generator.py`)
+  - 流程开头集成模板选择步骤
+  - 传递`subreddit`和`style_guide`给推广器
+  - 支持模板模式和生成模式无缝切换
+
+- **推广配置** (`config/promotion_embedding.yaml`)
+  - 新增`soft_promo_template_path`配置项
+  - 移除`insertion_probability_by_intent`（已废弃）
+  - 改为100%插入策略（由link_policy决定模式）
+
+**测试覆盖**:
+- ✅ 模板选择覆盖率: 30/30 (100%)
+- ✅ 推广模式切换: 3/3 通过
+- ✅ 完整流程模拟: 正常
+
+**技术亮点**:
+1. 语言自动匹配：根据帖子语言选择对应模板，无需AI翻译
+2. 简洁性保证：强制AI在30词以内，保持原模板简短风格
+3. 合规自动化：根据子版link_policy自动选择推广模式
+4. 向后兼容：不提供template_path时回退到生成模式
+
+**参考文档**: [M4模板化改造报告](M4_TEMPLATE_UPGRADE_REPORT.md)
+
+---
+
 ## [0.4.0] - 2025-10-09
 
 ### Added
