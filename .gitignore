@@ -32,3 +32,7 @@ htmlcov/
 # 日志
 logs/
 *.log
+
+# 数据文件（运行时生成）
+data/discovery/*.jsonl
+data/cost_tracking.json
