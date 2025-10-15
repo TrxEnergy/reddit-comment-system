@@ -11,6 +11,74 @@
 
 ### Added
 
+#### M4高度拟人化系统（v2.2.0）- 2025-10-15
+
+**核心改进**:
+- 拟人化特征从2特征/评论提升至**3.25特征/评论**
+- **11个拟人化特征全覆盖**（100%特征类型覆盖度）
+- **36.7%的评论包含4+特征**，最优示例达到7特征组合
+- 完全模拟Reddit加密社区真实用户随意风格
+
+**技术实现**:
+
+1. **新增5个拟人化方法** (`src/content/naturalizer.py` +200行):
+   - `apply_capitalization_humanization()` - 句首小写、全大写强调、专有名词随意化
+   - `inject_crypto_slang()` - 加密社区俚语注入（hodl, moon, pricey af等）
+   - `drop_apostrophes()` - 缩写撇号省略（don't → dont）
+   - `apply_multi_emoji()` - 多emoji策略（最多2个/评论）
+   - `apply_punctuation_casualization()` - 标点随意化（省略句号、多感叹号、省略号）
+
+2. **词匹配优化**（关键突破）:
+   - 错别字/俚语/全大写/撇号省略：先筛选文本中存在的词，再随机选择替换
+   - 触发率提升10-40倍（例如错别字：3% → 39%，俚语：0% → 25%）
+
+3. **概率全面调优** (`config/naturalization_policy.yaml` v1.0.0 → v2.0.0):
+   - emoji: 25% → 50%
+   - 错别字: 15% → 50%
+   - 俚语: 20% → 60%
+   - 全大写: 12% → 30%
+   - 撇号: 20% → 30%
+   - 省略号: 20% → 30%
+
+4. **词汇库扩展**:
+   - 全大写词汇: 11个 → 18个（新增FAST, CRAZY, BEST, INSANE, AMAZING等）
+   - 俚语对: 3个 → 9个（新增hodling, mooning, pricey af等）
+   - 错别字对: 6个 → 17个（新增blockchain→block chain等）
+   - 填充词: 5个 → 18个（新增fr, ngl, lowkey等）
+
+**测试验证**:
+- ✅ 150次迭代综合测试通过
+- ✅ 特征触发率符合预期：
+  - emoji 51%（目标45-55%）
+  - 错别字 36%（目标35-50%）
+  - 俚语 25%（目标20-30%）
+  - 全大写 15%（目标12-30%）
+  - 省略号 31%（目标25-35%）
+  - 撇号省略 24%（目标20-30%）
+
+**优秀示例**:
+```
+"tbh, this is CRAZY! The fees are so pricey af. i won't pay that much
+for a simple tranfer. 💎"
+[7特征: 填充词+全大写+俚语+错别字+句首小写+emoji+省略句号]
+
+"honestly, i cant wait to see bitcoin mooning again… It's never been
+this low before."
+[6特征: 填充词+句首小写+撇号+俚语+小写专有名词+省略号]
+```
+
+**新增文件**:
+- `test_final_humanization_report.py` - 150次迭代综合测试工具
+- `test_humanization_extreme.py` - 100次压力测试工具
+- `HUMANIZATION_COMPLETE_REPORT.md` - 完整技术报告（推荐阅读）
+- `config/naturalization_policy.yaml.backup_20251015` - 配置备份
+
+**文档更新**:
+- README.md: Module 4版本号更新为v2.2.0，新增拟人化系统说明
+- 技术文档: [拟人化系统完整报告](HUMANIZATION_COMPLETE_REPORT.md)
+
+---
+
 #### M4模板化改造（v2.1.0）
 
 **新增组件**:

@@ -68,7 +68,7 @@ docker-compose exec comment-system pytest tests/unit/ -v
 - **弹性适配** - 1-200账号无缝支持，月成本$0.68-$13.50
 - **三档阈值** - 小规模高质量(0.70)、中规模均衡(0.65)、大规模高效(0.60)
 
-### Module 4: 内容工厂（v2.1.0）
+### Module 4: 内容工厂（v2.1.0 → v2.2.0）
 
 模板化评论生成系统，支持：
 - **模板库** - 1000+条基础软文模板，覆盖10种语言（zh/en/es/pt/ar/hi/id/th/tr/vi）
@@ -77,11 +77,13 @@ docker-compose exec comment-system pytest tests/unit/ -v
 - **双模式推广** - 根据子版link_policy自动切换（URL插入 vs 文字描述）
 - **合规保证** - 自动检测子版链接政策，避免违规风险
 - **向后兼容** - 支持模板模式和生成模式无缝切换
+- **🆕 高度拟人化（v2.2.0）** - 11个拟人化特征，平均3.25特征/评论，完全模拟Reddit真实用户风格
 
 **技术文档**:
 - [Module 2: 发现引擎](docs/MODULE_2_DISCOVERY.md)
 - [Module 3: 智能筛选](docs/MODULE_3_SCREENING.md)
 - [Module 4: M4模板化改造报告](M4_TEMPLATE_UPGRADE_REPORT.md)
+- [拟人化系统完整报告](HUMANIZATION_COMPLETE_REPORT.md) ⭐ 新增
 
 ### 配置说明
 
