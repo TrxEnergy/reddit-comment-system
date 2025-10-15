@@ -259,42 +259,61 @@ class Naturalizer:
 
     def add_natural_imperfections(self, text: str) -> str:
         """
-        添加自然瑕疵（表情、轻微错字、口语填充词）
+        添加自然瑕疵（高度拟人化版本 2025-10-15）
 
-        参考naturalization_policy.yaml:
-        - emoji: 25%概率，最多1个
-        - typo: 15%概率，最多1个
-        - filler_words: 35%概率
+        调用顺序:
+        1. 大小写拟人化（句首小写、全大写强调、专有名词随意化）
+        2. 加密俚语注入（HODL、rekt等）
+        3. 错别字（25%概率）
+        4. 撇号省略（20%概率）
+        5. 口语填充词（45%概率）
+        6. 多emoji（45%概率，最多2个）
+        7. 标点随意化（省略句号、多感叹号等）
         """
-        # 1. 表情符号（25%概率）
-        emoji_policy = self.policy.get('emoji_policy', {})
-        if emoji_policy.get('allow', True) and random.random() < emoji_policy.get('probability', 0.25):
-            emojis = emoji_policy.get('appropriate_emojis', ['👍', '😂', '🙏', '🤔', '👀'])
-            emoji = random.choice(emojis)
-            # 优先放在结尾
-            text = text.rstrip() + f" {emoji}"
+        text = self.apply_capitalization_humanization(text)
 
-        # 2. 轻微错字（15%概率）
+        text = self.inject_crypto_slang(text)
+
+        # [FIX 2025-10-15] 错别字注入 - 只选择文本中存在的词
         typo_policy = self.policy.get('typo_policy', {})
-        if typo_policy.get('allow_light_typos', True) and random.random() < typo_policy.get('probability', 0.15):
+        if typo_policy.get('allow_light_typos', True) and random.random() < typo_policy.get('probability', 0.50):
             allowed_typos = typo_policy.get('allowed_typos', [])
             if allowed_typos:
-                typo_pair = random.choice(allowed_typos)
-                original = typo_pair.get('original', '')
-                typo = typo_pair.get('typo', '')
-                # 只替换一次
-                text = text.replace(original, typo, 1)
+                # 筛选出文本中存在的词
+                available_typos = [
+                    t for t in allowed_typos
+                    if re.search(r'\b' + t.get('original', '') + r'\b', text, flags=re.IGNORECASE)
+                ]
 
-        # 3. 口语填充词（35%概率）
+                if available_typos:
+                    typo_pair = random.choice(available_typos)
+                    original = typo_pair.get('original', '')
+                    typo = typo_pair.get('typo', '')
+                    if original and typo:
+                        text = re.sub(r'\b' + original + r'\b', typo, text, count=1, flags=re.IGNORECASE)
+
+        text = self.drop_apostrophes(text)
+
         filler_policy = self.policy.get('filler_words', {})
-        if filler_policy.get('allow', True) and random.random() < filler_policy.get('probability', 0.35):
+        if filler_policy.get('allow', True) and random.random() < filler_policy.get('probability', 0.48):
             fillers = filler_policy.get('common_fillers', ['tbh', 'imo', 'honestly'])
             filler = random.choice(fillers)
-            # 插入到第一句开头
             sentences = re.split(r'([.!?])', text, maxsplit=1)
             if sentences:
                 sentences[0] = f"{filler}, {sentences[0]}"
                 text = ''.join(sentences)
+
+        text = self.apply_multi_emoji(text)
+
+        # [FIX 2025-10-15] 省略号注入（35%概率）- 从vary_sentence_structure()移到这里
+        punct_policy = self.policy.get('punctuation_variety', {})
+        if punct_policy.get('allow_ellipsis', True) and random.random() < punct_policy.get('ellipsis_probability', 0.35):
+            ellipsis_types = punct_policy.get('ellipsis_types', ['...', '..', '…'])
+            ellipsis = random.choice(ellipsis_types)
+            # 将某个句号替换为省略号
+            text = re.sub(r'\.(\s+)', ellipsis + r'\1', text, count=1)
+
+        text = self.apply_punctuation_casualization(text)
 
         return text
 
@@ -345,7 +364,7 @@ class Naturalizer:
             },
             'filler_words': {
                 'allow': True,
-                'probability': 0.35,
+                'probability': 0.48,
                 'common_fillers': ['tbh', 'imo', 'fwiw', 'honestly', 'actually'],
                 'max_filler_ratio': 0.1
             },
@@ -356,3 +375,194 @@ class Naturalizer:
                 'max_exclamations_per_comment': 1
             }
         }
+
+    def apply_capitalization_humanization(self, text: str) -> str:
+        """
+        应用大小写拟人化
+
+        策略:
+        1. 句首小写（30%概率，特定触发词更高）
+        2. 全大写强调（12%概率，加密社区梗）
+        3. 专有名词随意化（35%小写）
+        """
+        cap_policy = self.policy.get('capitalization_policy', {})
+
+        if not cap_policy.get('allow_lowercase_start', False):
+            return text
+
+        sentences = re.split(r'([.!?]\s+)', text)
+
+        for i in range(0, len(sentences), 2):
+            if not sentences[i].strip():
+                continue
+
+            first_word = sentences[i].split()[0] if sentences[i].split() else ""
+
+            if first_word.lower() in cap_policy.get('lowercase_triggers', []):
+                if random.random() < 0.70:
+                    sentences[i] = sentences[i][0].lower() + sentences[i][1:] if sentences[i] else sentences[i]
+            elif random.random() < cap_policy.get('lowercase_start_probability', 0.30):
+                sentences[i] = sentences[i][0].lower() + sentences[i][1:] if sentences[i] else sentences[i]
+
+        text = ''.join(sentences)
+
+        # [FIX 2025-10-15] 全大写强调 - 只选择文本中存在的词
+        if cap_policy.get('allow_all_caps_emphasis', False) and random.random() < cap_policy.get('all_caps_probability', 0.30):
+            all_caps_words = cap_policy.get('all_caps_whitelist', [])
+            if all_caps_words:
+                # 筛选出文本中存在的词
+                available_words = [w for w in all_caps_words if re.search(r'\b' + w.lower() + r'\b', text, flags=re.IGNORECASE)]
+                if available_words:
+                    word_to_caps = random.choice(available_words)
+                    text = re.sub(r'\b' + word_to_caps.lower() + r'\b', word_to_caps, text, count=1, flags=re.IGNORECASE)
+
+        if not cap_policy.get('proper_noun_strict', True):
+            casual_nouns = cap_policy.get('casual_lowercase_nouns', [])
+            lowercase_prob = cap_policy.get('proper_noun_lowercase_probability', 0.35)
+            for noun in casual_nouns:
+                if random.random() < lowercase_prob:
+                    text = re.sub(r'\b' + noun.capitalize() + r'\b', noun, text)
+
+        return text
+
+    def apply_punctuation_casualization(self, text: str) -> str:
+        """
+        应用标点随意化
+
+        策略:
+        1. 省略结尾句号（40%概率）
+        2. 省略逗号（15%概率）
+        3. 多感叹号（25%概率）
+        4. 修辞问句（15%概率）
+        """
+        punct_policy = self.policy.get('punctuation_variety', {})
+
+        if punct_policy.get('allow_missing_period', False):
+            conditions = punct_policy.get('missing_period_conditions', {})
+            word_count = len(text.split())
+            ends_with_emoji = bool(re.search(r'[😀-🙏💀-🟿]$', text))
+
+            should_drop = False
+            if conditions.get('short_comment') and word_count < 15:
+                should_drop = random.random() < punct_policy.get('missing_period_probability', 0.40)
+            elif conditions.get('ends_with_emoji') and ends_with_emoji:
+                should_drop = random.random() < 0.60
+
+            if should_drop and text.endswith('.'):
+                text = text.rstrip('.')
+
+        if punct_policy.get('allow_missing_comma', False):
+            missing_comma_contexts = punct_policy.get('missing_comma_contexts', [])
+            for context in missing_comma_contexts:
+                if random.random() < punct_policy.get('missing_comma_probability', 0.15):
+                    text = re.sub(r'\b' + context + r',\s+', context + ' ', text, count=1)
+
+        if punct_policy.get('allow_multiple_exclamations', False):
+            exclamation_patterns = punct_policy.get('exclamation_patterns', ['!'])
+            if '!' in text and random.random() < 0.25:
+                pattern = random.choice(exclamation_patterns)
+                text = re.sub(r'!+', pattern, text, count=1)
+
+        return text
+
+    def drop_apostrophes(self, text: str) -> str:
+        """
+        省略缩写撇号（50%概率）
+
+        示例: don't → dont, can't → cant
+        [FIX 2025-10-15] 只选择文本中存在的缩写
+        """
+        contraction_policy = self.policy.get('contraction_policy', {})
+
+        if not contraction_policy.get('allow_apostrophe_drop', False):
+            return text
+
+        if random.random() < contraction_policy.get('apostrophe_drop_probability', 0.50):
+            casual_contractions = contraction_policy.get('casual_contractions', [])
+            if casual_contractions:
+                # 筛选出文本中存在的缩写
+                available_contractions = [
+                    c for c in casual_contractions
+                    if c.get('original', '') in text
+                ]
+
+                if available_contractions:
+                    contraction = random.choice(available_contractions)
+                    original = contraction.get('original', '')
+                    casual = contraction.get('casual', '')
+                    if original and casual:
+                        text = text.replace(original, casual, 1)
+
+        return text
+
+    def inject_crypto_slang(self, text: str) -> str:
+        """
+        注入加密社区俚语（50%概率）
+
+        示例: hold → HODL, destroyed → rekt
+        [FIX 2025-10-15] 只选择文本中存在的词进行替换
+        """
+        slang_policy = self.policy.get('crypto_slang', {})
+
+        if not slang_policy.get('allow', False):
+            return text
+
+        if random.random() < slang_policy.get('slang_probability', 0.50):
+            replacements = slang_policy.get('replacements', [])
+            if replacements:
+                # 筛选出文本中存在的formal词
+                available_replacements = [
+                    r for r in replacements
+                    if re.search(r'\b' + r.get('formal', '') + r'\b', text, flags=re.IGNORECASE)
+                ]
+
+                if available_replacements:
+                    replacement = random.choice(available_replacements)
+                    formal = replacement.get('formal', '')
+                    slang = replacement.get('slang', '')
+                    prob = replacement.get('probability', 1.0)
+
+                    if formal and slang and random.random() < prob:
+                        text = re.sub(r'\b' + formal + r'\b', slang, text, count=1, flags=re.IGNORECASE)
+
+        return text
+
+    def apply_multi_emoji(self, text: str) -> str:
+        """
+        应用多emoji策略（45%概率，最多2个）
+
+        策略:
+        1. 上下文匹配emoji
+        2. 多位置放置（结尾、句中、开头）
+        """
+        emoji_policy = self.policy.get('emoji_policy', {})
+
+        if not emoji_policy.get('allow', True):
+            return text
+
+        max_emojis = emoji_policy.get('max_per_comment', 2)
+        probability = emoji_policy.get('probability', 0.45)
+
+        if random.random() > probability:
+            return text
+
+        emojis_to_add = random.randint(1, max_emojis)
+        emojis = emoji_policy.get('appropriate_emojis', ['👍', '😂', '🙏'])
+        placements = emoji_policy.get('placement', ['ending'])
+
+        for _ in range(emojis_to_add):
+            if not emojis:
+                break
+
+            emoji = random.choice(emojis)
+            placement = random.choice(placements)
+
+            if placement == 'ending':
+                text = text.rstrip() + f" {emoji}"
+            elif placement == 'mid_sentence' and '. ' in text:
+                parts = text.split('. ', 1)
+                text = f"{parts[0]} {emoji}. {parts[1]}"
+            elif placement == 'opening':
+                text = f"{emoji} {text}"
+
+        return text

@@ -100,7 +100,8 @@ class PromptBuilder:
                 self._build_intent_block(intent_group),
                 self._build_style_block(style_guide, persona),
                 self._build_safety_block(intent_group),
-                self._build_format_block(style_guide, post_lang)
+                self._build_format_block(style_guide, post_lang),
+                self._build_brevity_constraints()
             ]
 
         prompt = "\n\n".join(blocks)
@@ -369,13 +370,18 @@ Post context:
 - Subreddit: r/{subreddit}
 - Post language: {post_lang}
 
-CRITICAL RULES:
-1. If template language matches post language → Use template directly or add MINIMAL filler words (tbh, imo, honestly)
-2. If languages differ → Translate but KEEP IT SHORT (under 30 words)
-3. DO NOT expand the template - stay close to original length
-4. DO NOT add questions, disclaimers, or extra sentences
-5. DO NOT explain or elaborate beyond the template
-6. Maintain the casual, direct tone of the original template
+CRITICAL RULES - FOLLOW EXACTLY:
+1. HIGHEST PRIORITY: Preserve the template's exact meaning and personality
+2. Same language → Copy template + add 1-2 filler words max (tbh, honestly, fwiw)
+3. Different language → Translate PRECISELY, keeping tone and emotion
+4. DO NOT add new ideas, questions, or explanations
+5. DO NOT remove the personal touch (emoji, casual tone, experience sharing)
+6. Length target: Match template length (usually 20-30 words)
+
+Example:
+Template: "我以前也被转账手续费整疯了😂，后来用成本优化方式省了不少钱"
+Good: "honestly, transfer fees used to drive me crazy 😂, but I saved a ton using cost optimization"
+Bad: "You can save money by optimizing costs" (❌ too generic, lost personality)
 
 Output ONLY the adapted comment text (no explanations):"""
 
@@ -392,8 +398,8 @@ Output ONLY the adapted comment text (no explanations):"""
         """
         block = """[BREVITY CONSTRAINTS]
 ABSOLUTE REQUIREMENTS:
-- Maximum 30 words total
-- Maximum 2 sentences
+- Maximum 30 words total (stay close to template length)
+- Maximum 1-2 sentences
 - DO NOT add any content beyond adapting the template
 - DO NOT add "Not financial advice" or similar disclaimers (promotion will add them)
 - Keep it SHORT and DIRECT - users won't read long comments

@@ -1,33 +1,44 @@
-version: "1.0.0"
-last_updated: "2025-10-10"
-description: "自然化策略配置，模拟真实用户的不完美特征"
+version: "2.0.0"
+last_updated: "2025-10-15"
+description: "高度拟人化策略配置 - Reddit加密社区风格"
 
-# 表情符号政策
 emoji_policy:
   allow: true
-  max_per_comment: 1
-  probability: 0.25  # 25%的评论会包含表情
+  max_per_comment: 2
+  probability: 0.50
   appropriate_emojis:
-    - "👍"  # 赞同
-    - "😂"  # 有趣
-    - "🙏"  # 感谢
-    - "🤔"  # 思考
-    - "👀"  # 关注
-  placement:
-    - "ending"  # 优先放在结尾
-    - "transition"  # 其次放在过渡句
+    - "👍"
+    - "🙏"
+    - "💪"
+    - "🚀"
+    - "🔥"
+    - "💎"
+    - "✅"
+    - "🤔"
+    - "👀"
+    - "📈"
+    - "💰"
+    - "🪙"
+    - "😂"
+    - "💀"
+    - "📉"
+    - "🤷"
+    - "😅"
   context_match:
-    positive_sentiment: ["👍", "🙏"]
-    neutral_question: ["🤔", "👀"]
-    humorous: ["😂"]
+    positive_sentiment: ["👍", "🙏", "💪", "🚀", "🔥", "💎", "✅"]
+    neutral_question: ["🤔", "👀", "🤷"]
+    humorous: ["😂", "💀", "😅"]
+    money_related: ["💰", "🪙", "📈", "📉"]
+  placement:
+    - "ending"
+    - "mid_sentence"
+    - "opening"
 
-# 拼写错误政策（轻微错字增强真实感）
 typo_policy:
   allow_light_typos: true
-  max_typo_ratio: 0.03  # 最多3%字符可轻微错误
-  probability: 0.15  # 15%的评论会有轻微错字
+  max_typo_ratio: 0.03
+  probability: 0.50
   allowed_typos:
-    # 常见拼写错误（非明显低级错误）
     - original: "transfer"
       typo: "tranfer"
     - original: "receive"
@@ -40,94 +51,254 @@ typo_policy:
       typo: "occured"
     - original: "withdrawal"
       typo: "withdrawl"
-  max_typos_per_comment: 1  # 每条评论最多1个错字
-  avoid_in_technical_terms: true  # 技术术语不允许错字
+    - original: "transaction"
+      typo: "transation"
+    - original: "wallet"
+      typo: "walet"
+    - original: "cryptocurrency"
+      typo: "cryprocurrency"
+    - original: "exchange"
+      typo: "exhange"
+    - original: "address"
+      typo: "adress"
+    - original: "blockchain"
+      typo: "block chain"
+    - original: "recommend"
+      typo: "reccomend"
+    - original: "experience"
+      typo: "experiance"
+    - original: "too"
+      typo: "to"
+    - original: "their"
+      typo: "thier"
+    - original: "believe"
+      typo: "beleive"
+  max_typos_per_comment: 1
+  avoid_in_technical_terms: true
+  protected_words:
+    - "Bitcoin"
+    - "Ethereum"
+    - "TRON"
+    - "TRX"
+    - "luntriaOfficialChannel"
 
-# 口语填充词政策
 filler_words:
   allow: true
-  max_filler_ratio: 0.1  # 最多10%的句子包含填充词
-  probability: 0.35  # 35%的评论会有口语词
+  max_filler_ratio: 0.1
+  probability: 0.48
   common_fillers:
-    - "tbh"  # to be honest
-    - "imo"  # in my opinion
-    - "fwiw"  # for what it's worth
-    - "idk"  # I don't know
-    - "kinda"  # kind of
-    - "sorta"  # sort of
-    - "basically"  # 基本上
-    - "honestly"  # 老实说
-    - "actually"  # 实际上
-    - "probably"  # 可能
+    - "tbh"
+    - "imo"
+    - "fwiw"
+    - "idk"
+    - "kinda"
+    - "sorta"
+    - "basically"
+    - "honestly"
+    - "actually"
+    - "probably"
+    - "ngl"
+    - "fr"
+    - "lowkey"
+    - "literally"
+    - "like"
+    - "I mean"
+    - "you know"
+    - "right"
   placement_preference:
-    - "opening"  # 开头（tbh, imo, fwiw）
-    - "transition"  # 过渡（honestly, actually）
-  avoid_overuse: true  # 避免同一评论多次使用
+    - "opening"
+    - "transition"
+  avoid_overuse: true
+  allow_multiple: true
+  multiple_probability: 0.15
+  max_fillers_per_comment: 2
 
-# 标点符号变化
 punctuation_variety:
-  allow_ellipsis: true  # 允许省略号
-  ellipsis_probability: 0.20
-  allow_double_space: false  # 禁止双空格（太明显）
-  exclamation_moderation: true  # 节制使用感叹号
-  max_exclamations_per_comment: 1
+  allow_ellipsis: true
+  ellipsis_probability: 0.30
+  ellipsis_types:
+    - "..."
+    - ".."
+    - "…"
+  allow_missing_period: true
+  missing_period_probability: 0.45
+  missing_period_conditions:
+    short_comment: true
+    ends_with_emoji: true
+  allow_missing_comma: true
+  missing_comma_probability: 0.15
+  missing_comma_contexts:
+    - "btw"
+    - "also"
+    - "plus"
+  exclamation_moderation: false
+  allow_multiple_exclamations: true
+  exclamation_patterns:
+    - "!"
+    - "!!"
+    - "!!!"
+    - "?!"
+  allow_rhetorical_question: true
+  rhetorical_probability: 0.15
 
-# 大小写变化（非正式风格）
 capitalization_policy:
-  allow_lowercase_start: false  # 禁止句首小写（太随意）
-  allow_all_caps_emphasis: false  # 禁止全大写强调（太aggressive）
-  proper_noun_strict: true  # 专有名词严格大小写
+  allow_lowercase_start: true
+  lowercase_start_probability: 0.22
+  lowercase_triggers:
+    - "tbh"
+    - "imo"
+    - "idk"
+    - "ngl"
+    - "fwiw"
+    - "honestly"
+    - "btw"
+  allow_all_caps_emphasis: true
+  all_caps_probability: 0.30
+  all_caps_whitelist:
+    - "HODL"
+    - "DYOR"
+    - "NFA"
+    - "FOMO"
+    - "FUD"
+    - "WAGMI"
+    - "WTF"
+    - "LOL"
+    - "OMG"
+    - "FINALLY"
+    - "THIS"
+    - "FAST"
+    - "CRAZY"
+    - "BEST"
+    - "INSANE"
+    - "AMAZING"
+    - "NEVER"
+    - "ALWAYS"
+  all_caps_placement:
+    - "emphasis"
+    - "emotion"
+  proper_noun_strict: false
+  proper_noun_lowercase_probability: 0.35
+  casual_lowercase_nouns:
+    - "bitcoin"
+    - "ethereum"
+    - "tron"
+    - "binance"
+    - "coinbase"
+    - "metamask"
+    - "uniswap"
 
-# 句子长度变化（模拟自然思考流）
+contraction_policy:
+  allow_apostrophe_drop: true
+  apostrophe_drop_probability: 0.30
+  casual_contractions:
+    - original: "don't"
+      casual: "dont"
+    - original: "can't"
+      casual: "cant"
+    - original: "won't"
+      casual: "wont"
+    - original: "didn't"
+      casual: "didnt"
+    - original: "it's"
+      casual: "its"
+    - original: "that's"
+      casual: "thats"
+    - original: "what's"
+      casual: "whats"
+
+crypto_slang:
+  allow: true
+  slang_probability: 0.60
+  common_slang:
+    - "HODL"
+    - "rekt"
+    - "moon"
+    - "lambo"
+    - "whale"
+    - "normie"
+    - "shill"
+    - "FUD"
+    - "FOMO"
+    - "DYOR"
+    - "NFA"
+    - "gm"
+    - "ngmi"
+    - "wagmi"
+  replacements:
+    - formal: "hold"
+      slang: "hodl"
+      probability: 1.0
+    - formal: "holding"
+      slang: "hodling"
+      probability: 1.0
+    - formal: "destroyed"
+      slang: "rekt"
+      probability: 1.0
+    - formal: "increase a lot"
+      slang: "moon"
+      probability: 1.0
+    - formal: "rising"
+      slang: "mooning"
+      probability: 1.0
+    - formal: "good morning"
+      slang: "gm"
+      probability: 1.0
+    - formal: "research"
+      slang: "DYOR"
+      probability: 1.0
+    - formal: "fear"
+      slang: "FUD"
+      probability: 1.0
+    - formal: "expensive"
+      slang: "pricey af"
+      probability: 1.0
+
 sentence_structure:
   encourage_variety: true
-  short_sentence_ratio: 0.3  # 30%短句（5-10词）
-  medium_sentence_ratio: 0.5  # 50%中句（11-20词）
-  long_sentence_ratio: 0.2  # 20%长句（21-30词）
-  max_sentence_length: 35  # 最长35词
+  short_sentence_ratio: 0.3
+  medium_sentence_ratio: 0.5
+  long_sentence_ratio: 0.2
+  max_sentence_length: 35
 
-# 段落结构（Reddit风格）
 paragraph_structure:
-  prefer_single_paragraph: true  # Reddit评论多为单段
-  allow_line_breaks: true  # 允许换行分隔观点
-  max_line_breaks: 1  # 最多1次换行（分2段）
+  prefer_single_paragraph: true
+  allow_line_breaks: true
+  max_line_breaks: 1
 
-# 自然化增强策略
 enhancement_strategy:
-  add_conversational_connectors: true  # 增加口语连接词
+  add_conversational_connectors: true
   connectors:
     - "that said"
-    - "btw"  # by the way
+    - "btw"
     - "also"
     - "plus"
     - "anyway"
-
-  add_hedging_language: true  # 增加模糊限定词（避免绝对化）
+  add_hedging_language: true
   hedges:
     - "usually"
     - "generally"
     - "mostly"
     - "in my experience"
     - "from what I've seen"
-
-  add_personal_touch: true  # 增加个人化表达
+  add_personal_touch: true
   personal_phrases:
     - "for me"
     - "personally"
     - "in my case"
     - "the way I see it"
 
-# 质量保证（避免过度自然化）
 quality_checks:
-  min_readability_score: 60  # Flesch阅读分数最低60（易读）
-  max_informal_ratio: 0.4  # 非正式元素最多占40%
-  preserve_technical_accuracy: true  # 保持技术准确性
-  avoid_slang_overload: true  # 避免俚语过载
+  min_readability_score: 55
+  max_informal_ratio: 0.50
+  preserve_technical_accuracy: true
+  avoid_slang_overload: true
+  combination_limits:
+    max_combined_casual_features: 2
+    must_have_one_correct_sentence: true
 
-# A/B测试配置（可选）
 ab_test:
   enabled: false
-  test_group_ratio: 0.5  # 50%用户使用自然化策略
+  test_group_ratio: 0.5
   metrics_to_track:
     - "engagement_rate"
     - "response_rate"
